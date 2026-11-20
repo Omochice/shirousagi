@@ -2,6 +2,7 @@ import {
   "omochice/mcp",
   "omochice/schema",
   "omochice/trac",
+  "omochice/trac/milestones",
   "omochice/trac/tickets",
   "omochice/trac/wiki",
 }
