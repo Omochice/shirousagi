@@ -1,0 +1,32 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "omochice/trac/tickets"
+
+import {
+  "moonbitlang/core/json",
+  "omochice/trac",
+}
+
+// Values
+pub async fn actions(@trac.Trac, Int32) -> Array[@json.Json] raise @trac.TracError
+
+pub async fn changelog(@trac.Trac, Int32) -> Array[@json.Json] raise @trac.TracError
+
+pub async fn create(@trac.Trac, summary~ : String, description~ : String, fields? : Map[String, @json.Json], notify? : Bool) -> Int32 raise @trac.TracError
+
+pub async fn delete(@trac.Trac, Int32) -> Unit raise @trac.TracError
+
+pub async fn fields(@trac.Trac) -> @json.Json raise @trac.TracError
+
+pub async fn get(@trac.Trac, Int32) -> @json.Json raise @trac.TracError
+
+pub async fn query(@trac.Trac, String) -> Array[Int32] raise @trac.TracError
+
+pub async fn update(@trac.Trac, Int32, comment? : String, action? : String, fields? : Map[String, @json.Json], ts? : String, notify? : Bool) -> @json.Json raise @trac.TracError
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
