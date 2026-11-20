@@ -1,0 +1,38 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "omochice/trac/milestones"
+
+import {
+  "moonbitlang/core/json",
+  "omochice/trac",
+}
+
+// Values
+pub async fn create(@trac.Trac, String, Changes) -> Unit raise @trac.TracError
+
+pub async fn delete(@trac.Trac, String) -> Unit raise @trac.TracError
+
+pub async fn get(@trac.Trac, String) -> @json.Json raise @trac.TracError
+
+pub async fn names(@trac.Trac) -> Array[String] raise @trac.TracError
+
+pub async fn update(@trac.Trac, String, Changes) -> Unit raise @trac.TracError
+
+// Errors
+
+// Types and methods
+pub(all) struct Changes {
+  name : String?
+  due : Moment?
+  completed : Moment?
+  description : String?
+}
+pub fn Changes::new(name? : String, due? : Moment, completed? : Moment, description? : String) -> Self
+
+pub(all) enum Moment {
+  At(String)
+  Unset
+}
+
+// Type aliases
+
+// Traits
