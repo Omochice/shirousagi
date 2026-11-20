@@ -3,6 +3,7 @@ import {
   "omochice/schema",
   "omochice/trac",
   "omochice/trac/milestones",
+  "omochice/trac/search",
   "omochice/trac/tickets",
   "omochice/trac/wiki",
 }

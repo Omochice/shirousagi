@@ -14,6 +14,8 @@ pub fn milestones_tool(&MilestonePort, Mode) -> @mcp.Tool
 
 pub fn on_invalid(@schema.SchemaError) -> @mcp.ToolResult
 
+pub fn search_tool(&SearchPort) -> @mcp.Tool
+
 pub fn tickets_tool(&TicketPort, Mode) -> @mcp.Tool
 
 pub fn wiki_tool(&WikiPort, Mode) -> @mcp.Tool
@@ -37,6 +39,12 @@ pub(open) trait MilestonePort {
   async fn delete_milestone(Self, String) -> Unit raise @trac.TracError
 }
 pub impl MilestonePort for @trac.Trac
+
+pub(open) trait SearchPort {
+  async fn search_filters(Self) -> Array[@json.Json] raise @trac.TracError
+  async fn search(Self, String, filters? : Array[String]) -> Array[@json.Json] raise @trac.TracError
+}
+pub impl SearchPort for @trac.Trac
 
 pub(open) trait TicketPort {
   async fn query_tickets(Self, String) -> Array[Int32] raise @trac.TracError
