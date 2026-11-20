@@ -67,3 +67,5 @@ result-*
 **/.nixos-test-history
 
 .pre-commit-config.yaml
+
+shirousagi/src/build/version_json.mbt
