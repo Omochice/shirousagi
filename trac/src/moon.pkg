@@ -1,0 +1,13 @@
+import {
+  "moonbitlang/async/http",
+  "moonbitlang/core/debug",
+  "moonbitlang/core/encoding/base64",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/json",
+}
+
+import {
+  "moonbitlang/async",
+} for "test"
+
+supported_targets = "+native"
