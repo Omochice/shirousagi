@@ -5,6 +5,7 @@ import {
   "moonbitlang/core/json",
   "omochice/mcp",
   "omochice/schema",
+  "omochice/shirousagi/build",
   "omochice/trac",
   "omochice/trac/milestones",
 }
@@ -15,6 +16,8 @@ pub fn milestones_tool(&MilestonePort, Mode) -> @mcp.Tool
 pub fn on_invalid(@schema.SchemaError) -> @mcp.ToolResult
 
 pub fn search_tool(&SearchPort) -> @mcp.Tool
+
+pub fn server_info_tool(&ServerInfoPort, build? : @build.BuildInfo?) -> @mcp.Tool
 
 pub fn tickets_tool(&TicketPort, Mode) -> @mcp.Tool
 
@@ -45,6 +48,11 @@ pub(open) trait SearchPort {
   async fn search(Self, String, filters? : Array[String]) -> Array[@json.Json] raise @trac.TracError
 }
 pub impl SearchPort for @trac.Trac
+
+pub(open) trait ServerInfoPort {
+  async fn trac_api_version(Self) -> @json.Json raise @trac.TracError
+}
+pub impl ServerInfoPort for @trac.Trac
 
 pub(open) trait TicketPort {
   async fn query_tickets(Self, String) -> Array[Int32] raise @trac.TracError

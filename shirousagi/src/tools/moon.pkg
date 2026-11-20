@@ -1,6 +1,7 @@
 import {
   "omochice/mcp",
   "omochice/schema",
+  "omochice/shirousagi/build",
   "omochice/trac",
   "omochice/trac/milestones",
   "omochice/trac/search",
