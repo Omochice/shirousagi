@@ -1,0 +1,32 @@
+///|
+/// Tells the model how a call names its operation in the advertised schema.
+let operation_key_hint : String = "Pass exactly one key, the operation name, whose value is an object of that operation's arguments: `{\"<operation>\": {...}}`."
+
+///|
+/// The description of a tool: `lines`, one per sentence or paragraph, and the
+/// operation-key hint last, so a model finds the hint in the same place in
+/// every tool.
+fn describe_tool(lines : Array[String]) -> String {
+  [..lines, operation_key_hint].join("\n")
+}
+
+///|
+/// The description of a CRUD resource tool.
+/// In `Readonly` mode the write verbs are dropped so the description matches
+/// the pruned schema.
+///
+/// `resource` is the plural noun, e.g. `"tickets"` or `"wiki pages"`.
+/// `full_verbs` opens the `Full` summary for resources whose writes are not
+/// the plain four operations.
+fn describe_crud_tool(
+  resource : String,
+  mode : Mode,
+  full_verbs~ : String = "Create, read, update, and delete",
+  lines~ : Array[String] = [],
+) -> String {
+  let summary = match mode {
+    Readonly => "List and show Trac \{resource}."
+    Full => "\{full_verbs} Trac \{resource}."
+  }
+  describe_tool([summary, ..lines])
+}
