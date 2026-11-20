@@ -1,0 +1,7 @@
+members = [
+  ".",
+  "../keyring",
+  "../mcp",
+  "../schema",
+  "../trac",
+]
