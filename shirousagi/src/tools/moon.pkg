@@ -3,6 +3,7 @@ import {
   "Omochice/schema",
   "omochice/trac",
   "omochice/trac/tickets",
+  "omochice/trac/wiki",
 }
 
 import {
