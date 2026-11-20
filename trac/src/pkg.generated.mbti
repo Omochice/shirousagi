@@ -1,0 +1,42 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "omochice/trac"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub async fn api_version(Trac) -> @json.Json raise TracError
+
+pub async fn call(Trac, String, Array[@json.Json]) -> @json.Json raise TracError
+
+pub fn datetime(String) -> @json.Json
+
+pub fn new(endpoint~ : String, username~ : String, password~ : String) -> Trac raise TracError
+
+pub fn unexpected(String) -> TracError
+
+// Errors
+#derive(@debug.Debug, @json.ToJson)
+pub(all) suberror TracError {
+  Fault(code~ : Int32, message~ : String)
+  Http(status~ : Int32)
+  Decode(message~ : String)
+  Transport(message~ : String)
+  InvalidArgument(message~ : String)
+}
+pub fn TracError::output(Self, &Logger) -> Unit
+pub fn TracError::to_json(Self) -> @json.Json
+pub fn TracError::to_repr(Self) -> @debug.Repr
+pub fn TracError::to_string(Self) -> String
+pub impl Show for TracError
+
+// Types and methods
+pub struct Trac {
+  // private fields
+}
+
+// Type aliases
+
+// Traits
