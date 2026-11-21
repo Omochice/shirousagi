@@ -95,7 +95,14 @@ async test "the server lists every tool with all its actions" {
       #|  "trac_enums": ["list", "get", "statuses", "create", "update", "delete"],
       #|  "trac_attachments": ["list", "get", "put", "delete"],
       #|  "trac_search": ["search", "filters"],
-      #|  "shirousagi_info": ["show", "ping"],
+      #|  "shirousagi_info": [
+      #|    "show",
+      #|    "ping",
+      #|    "wiki_rpc_version",
+      #|    "methods",
+      #|    "method_help",
+      #|    "method_signature",
+      #|  ],
       #|}
     ),
   )
@@ -115,7 +122,14 @@ async test "readonly mode lists every tool without its write actions" {
       #|  "trac_enums": ["list", "get", "statuses"],
       #|  "trac_attachments": ["list", "get"],
       #|  "trac_search": ["search", "filters"],
-      #|  "shirousagi_info": ["show", "ping"],
+      #|  "shirousagi_info": [
+      #|    "show",
+      #|    "ping",
+      #|    "wiki_rpc_version",
+      #|    "methods",
+      #|    "method_help",
+      #|    "method_signature",
+      #|  ],
       #|}
     ),
   )

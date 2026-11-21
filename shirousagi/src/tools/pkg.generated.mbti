@@ -90,6 +90,10 @@ pub impl SearchPort for @trac.Trac
 
 pub(open) trait ServerInfoPort {
   async fn trac_api_version(Self) -> @json.Json raise @trac.TracError
+  async fn wiki_rpc_version(Self) -> Int32 raise @trac.TracError
+  async fn trac_methods(Self) -> Array[String] raise @trac.TracError
+  async fn trac_method_help(Self, String) -> String raise @trac.TracError
+  async fn trac_method_signature(Self, String) -> Array[String] raise @trac.TracError
 }
 pub impl ServerInfoPort for @trac.Trac
 
