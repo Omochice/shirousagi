@@ -198,3 +198,29 @@ fn input_of(input : Json) -> Json raise @trac.TracError {
   }
   { "name": name, "value": value, "options": options }
 }
+
+///|
+/// The ids of the tickets changed since `since`, ISO 8601 text read as UTC when it has no offset.
+///
+/// # Raises
+/// `TracError` as `@trac.call` does.
+pub async fn recent_changes(
+  trac : @trac.Trac,
+  since : String,
+) -> Array[Int32] raise @trac.TracError {
+  let json = trac
+    |> @trac.call("ticket.getRecentChanges", [@trac.datetime(since)])
+  ids_of("ticket.getRecentChanges", json)
+}
+
+///|
+fn ids_of(
+  rpc_method : String,
+  json : Json,
+) -> Array[Int32] raise @trac.TracError {
+  guard json is Array(ids) else { raise @trac.unexpected(rpc_method) }
+  ids.map(id => {
+    guard id is Number(id, ..) else { raise @trac.unexpected(rpc_method) }
+    id.to_int()
+  })
+}
