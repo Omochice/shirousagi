@@ -100,3 +100,49 @@ pub async fn recent_changes(
 ) -> Json raise @trac.TracError {
   trac |> @trac.call("wiki.getRecentChanges", [@trac.datetime(since)])
 }
+
+///|
+/// Page `name` rendered as an HTML document, at `version` when given and the latest otherwise.
+///
+/// # Raises
+/// `Fault` with code 404 when there is no such page or version, otherwise as `@trac.call` does.
+pub async fn html(
+  trac : @trac.Trac,
+  name : String,
+  version? : Int32,
+) -> String raise @trac.TracError {
+  let (rpc_method, params) : (String, Array[Json]) = match version {
+    Some(version) => ("wiki.getPageHTMLVersion", [Json(name), Json(version)])
+    None => ("wiki.getPageHTML", [Json(name)])
+  }
+  let json = trac |> @trac.call(rpc_method, params)
+  guard json is String(html) else { raise @trac.unexpected(rpc_method) }
+  html
+}
+
+///|
+/// `text` in TracWiki markup rendered as an HTML fragment, without storing it anywhere.
+///
+/// # Raises
+/// `TracError` as `@trac.call` does.
+pub async fn render(
+  trac : @trac.Trac,
+  text : String,
+) -> String raise @trac.TracError {
+  let json = trac |> @trac.call("wiki.wikiToHtml", [Json(text)])
+  guard json is String(html) else { raise @trac.unexpected("wiki.wikiToHtml") }
+  html
+}
+
+///|
+/// The version of the wiki RPC interface, such as 2, as TracXMLRPC reports it for WikiRPC clients.
+///
+/// # Raises
+/// `TracError` as `@trac.call` does.
+pub async fn rpc_version(trac : @trac.Trac) -> Int32 raise @trac.TracError {
+  let json = trac |> @trac.call("wiki.getRPCVersionSupported", [])
+  guard json is Number(version, ..) else {
+    raise @trac.unexpected("wiki.getRPCVersionSupported")
+  }
+  version.to_int()
+}
