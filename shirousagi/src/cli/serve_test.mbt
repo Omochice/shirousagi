@@ -81,6 +81,7 @@ async test "the server lists every tool with all its actions" {
       #|  ],
       #|  "trac_wiki": ["list", "get", "info", "recent_changes", "put", "delete"],
       #|  "trac_milestones": ["list", "get", "create", "update", "delete"],
+      #|  "trac_attachments": ["list", "get", "put", "delete"],
       #|  "trac_search": ["search", "filters"],
       #|  "shirousagi_info": ["show", "ping"],
       #|}
@@ -97,6 +98,7 @@ async test "readonly mode lists every tool without its write actions" {
       #|  "trac_tickets": ["query", "get", "changelog", "actions", "fields", "recent_changes"],
       #|  "trac_wiki": ["list", "get", "info", "recent_changes"],
       #|  "trac_milestones": ["list", "get"],
+      #|  "trac_attachments": ["list", "get"],
       #|  "trac_search": ["search", "filters"],
       #|  "shirousagi_info": ["show", "ping"],
       #|}
