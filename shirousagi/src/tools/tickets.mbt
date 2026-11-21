@@ -9,14 +9,16 @@ priv enum TicketAction {
   Create(
     summary~ : String,
     description~ : String,
-    fields~ : Map[String, String]
+    fields~ : Map[String, String],
+    notify~ : Bool?
   )
   Update(
     Int32,
     comment~ : String?,
     action~ : String?,
     fields~ : Map[String, String]?,
-    ts~ : String?
+    ts~ : String?,
+    notify~ : Bool?
   )
   Delete(Int32)
 }
@@ -90,6 +92,12 @@ fn tickets_input(mode : Mode) -> @schema.Schema[TicketAction] {
       "The `_ts` of the ticket as `get` answered it. Trac then refuses the update when the ticket changed since, instead of overwriting that change; without it the update applies to whatever the ticket holds now.",
     ),
   )
+  let notify = @schema.optional(
+    "notify",
+    @schema.boolean().describe(
+      "Whether Trac emails the ticket's reporter, owner and CC list about this change; `false` when left out.",
+    ),
+  )
   let read = [
     (
       "query",
@@ -120,12 +128,14 @@ fn tickets_input(mode : Mode) -> @schema.Schema[TicketAction] {
           summary.as_member(),
           description.as_member(),
           create_fields.as_member(),
+          notify.as_member(),
         ],
         v => {
           TicketAction::Create(
             summary=v.get(summary),
             description=v.get(description),
             fields=v.get(create_fields).unwrap_or(Map([])),
+            notify=v.get(notify),
           )
         },
       ),
@@ -139,6 +149,7 @@ fn tickets_input(mode : Mode) -> @schema.Schema[TicketAction] {
           action.as_member(),
           update_fields.as_member(),
           ts.as_member(),
+          notify.as_member(),
         ],
         v => {
           TicketAction::Update(
@@ -147,6 +158,7 @@ fn tickets_input(mode : Mode) -> @schema.Schema[TicketAction] {
             action=v.get(action),
             fields=v.get(update_fields),
             ts=v.get(ts),
+            notify=v.get(notify),
           )
         },
       ),
@@ -196,13 +208,20 @@ pub fn tickets_tool(port : &TicketPort, mode : Mode) -> @mcp.Tool {
         Actions(id) => respond(() => port.ticket_actions(id))
         Fields => respond(() => port.ticket_fields())
         RecentChanges(since) => respond(() => port.recent_ticket_changes(since))
-        Create(summary~, description~, fields~) =>
+        Create(summary~, description~, fields~, notify~) =>
           respond(() => {
-            let id = port.create_ticket(summary~, description~, fields~)
+            let id = port.create_ticket(
+              summary~,
+              description~,
+              fields~,
+              notify?,
+            )
             { "id": Json(id) }
           })
-        Update(id, comment~, action~, fields~, ts~) =>
-          respond(() => port.update_ticket(id, comment?, action?, fields?, ts?))
+        Update(id, comment~, action~, fields~, ts~, notify~) =>
+          respond(() => {
+            port.update_ticket(id, comment?, action?, fields?, ts?, notify?)
+          })
         Delete(id) => respond_ok(() => port.delete_ticket(id))
       }
     },

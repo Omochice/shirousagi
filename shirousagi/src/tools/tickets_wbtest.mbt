@@ -3,12 +3,13 @@ struct FakeTickets {
   calls : Array[String]
   created : Array[(String, String, Map[String, String])]
   updated : Array[(Int32, String?, String?, Map[String, String]?, String?)]
+  notified : Array[Bool?]
   failure : @trac.TracError?
 }
 
 ///|
 fn FakeTickets::new(failure? : @trac.TracError) -> FakeTickets {
-  { calls: [], created: [], updated: [], failure, }
+  { calls: [], created: [], updated: [], notified: [], failure, }
 }
 
 ///|
@@ -83,9 +84,11 @@ impl TicketPort for FakeTickets with fn create_ticket(
   summary~,
   description~,
   fields~,
+  notify?,
 ) {
   self.record("create")
   self.created.push((summary, description, fields))
+  self.notified.push(notify)
   9
 }
 
@@ -97,9 +100,11 @@ impl TicketPort for FakeTickets with fn update_ticket(
   action?,
   fields?,
   ts?,
+  notify?,
 ) {
   self.record("update \{id}")
   self.updated.push((id, comment, action, fields, ts))
+  self.notified.push(notify)
   fake_ticket(id)
 }
 
@@ -355,4 +360,34 @@ async test "tickets: a rejected login keeps its HTTP status" {
     called.text,
     "{\"status\":401,\"errors\":[\"HTTP 401: the username or password was rejected\"]}",
   )
+}
+
+///|
+async test "notify reaches the port only when it is given" {
+  let fake = FakeTickets::new()
+  let tools = tickets_tools(fake)
+  let requests : Array[Json] = [
+    { "create": { "summary": "s", "description": "", "notify": true } },
+    { "create": { "summary": "s", "description": "" } },
+    { "update": { "id": 3, "notify": false } },
+    { "update": { "id": 3 } },
+  ]
+  for arguments in requests {
+    assert_eq(call_tool(tools, "trac_tickets", arguments).is_error, false)
+  }
+  assert_eq(fake.notified, [Some(true), None, Some(false), None])
+}
+
+///|
+async test "tickets: notify must be a boolean" {
+  let fake = FakeTickets::new()
+  let called = call_tool(tickets_tools(fake), "trac_tickets", {
+    "update": { "id": 3, "notify": "yes" },
+  })
+  assert_eq(called.is_error, true)
+  assert_true(
+    called.text.contains("invalid arguments: update.notify: expected a boolean"),
+    msg=called.text,
+  )
+  assert_eq(fake.calls, [])
 }
