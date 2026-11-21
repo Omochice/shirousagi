@@ -61,8 +61,8 @@ pub(open) trait TicketPort {
   async fn ticket_actions(Self, Int32) -> Array[@json.Json] raise @trac.TracError
   async fn ticket_fields(Self) -> @json.Json raise @trac.TracError
   async fn recent_ticket_changes(Self, String) -> Array[Int32] raise @trac.TracError
-  async fn create_ticket(Self, summary~ : String, description~ : String, fields~ : Map[String, String]) -> Int32 raise @trac.TracError
-  async fn update_ticket(Self, Int32, comment? : String, action? : String, fields? : Map[String, String], ts? : String) -> @json.Json raise @trac.TracError
+  async fn create_ticket(Self, summary~ : String, description~ : String, fields~ : Map[String, String], notify? : Bool) -> Int32 raise @trac.TracError
+  async fn update_ticket(Self, Int32, comment? : String, action? : String, fields? : Map[String, String], ts? : String, notify? : Bool) -> @json.Json raise @trac.TracError
   async fn delete_ticket(Self, Int32) -> Unit raise @trac.TracError
 }
 pub impl TicketPort for @trac.Trac
