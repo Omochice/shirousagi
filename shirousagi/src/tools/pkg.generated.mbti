@@ -8,11 +8,14 @@ import {
   "omochice/shirousagi/build",
   "omochice/trac",
   "omochice/trac/attachments",
+  "omochice/trac/components",
   "omochice/trac/milestones",
 }
 
 // Values
 pub fn attachments_tool(&AttachmentPort, Mode) -> @mcp.Tool
+
+pub fn components_tool(&ComponentPort, Mode) -> @mcp.Tool
 
 pub fn milestones_tool(&MilestonePort, Mode) -> @mcp.Tool
 
@@ -44,6 +47,15 @@ pub(open) trait AttachmentPort {
   async fn delete_attachment(Self, @attachments.Target, String) -> Unit raise @trac.TracError
 }
 pub impl AttachmentPort for @trac.Trac
+
+pub(open) trait ComponentPort {
+  async fn component_names(Self) -> Array[String] raise @trac.TracError
+  async fn get_component(Self, String) -> @json.Json raise @trac.TracError
+  async fn create_component(Self, String, @components.Changes) -> Unit raise @trac.TracError
+  async fn update_component(Self, String, @components.Changes) -> Unit raise @trac.TracError
+  async fn delete_component(Self, String) -> Unit raise @trac.TracError
+}
+pub impl ComponentPort for @trac.Trac
 
 pub(open) trait MilestonePort {
   async fn milestone_names(Self) -> Array[String] raise @trac.TracError
