@@ -23,6 +23,8 @@ pub async fn method_signature(Trac, String) -> Array[String] raise TracError
 
 pub async fn methods(Trac) -> Array[String] raise TracError
 
+pub async fn multicall(Trac, Array[(String, Array[@json.Json])]) -> Array[Result[@json.Json, TracError]] raise TracError
+
 pub fn new(endpoint~ : String, username~ : String, password~ : String) -> Trac raise TracError
 
 pub fn unexpected(String) -> TracError
