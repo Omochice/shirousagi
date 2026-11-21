@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "omochice/trac/attachments"
+
+import {
+  "moonbitlang/core/json",
+  "omochice/trac",
+}
+
+// Values
+pub async fn delete(@trac.Trac, Target, String) -> Unit raise @trac.TracError
+
+pub async fn get(@trac.Trac, Target, String) -> Bytes raise @trac.TracError
+
+pub async fn list(@trac.Trac, Target) -> Array[@json.Json] raise @trac.TracError
+
+pub async fn put(@trac.Trac, Target, String, BytesView, description? : String, replace? : Bool) -> String raise @trac.TracError
+
+// Errors
+
+// Types and methods
+pub(all) enum Target {
+  Ticket(Int32)
+  Wiki(String)
+}
+
+// Type aliases
+
+// Traits
