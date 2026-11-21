@@ -10,6 +10,7 @@ import {
   "omochice/trac/attachments",
   "omochice/trac/components",
   "omochice/trac/milestones",
+  "omochice/trac/versions",
 }
 
 // Values
@@ -26,6 +27,8 @@ pub fn search_tool(&SearchPort) -> @mcp.Tool
 pub fn server_info_tool(&ServerInfoPort, build? : @build.BuildInfo?) -> @mcp.Tool
 
 pub fn tickets_tool(&TicketPort, Mode) -> @mcp.Tool
+
+pub fn versions_tool(&VersionPort, Mode) -> @mcp.Tool
 
 pub fn wiki_tool(&WikiPort, Mode) -> @mcp.Tool
 
@@ -89,6 +92,15 @@ pub(open) trait TicketPort {
   async fn delete_ticket(Self, Int32) -> Unit raise @trac.TracError
 }
 pub impl TicketPort for @trac.Trac
+
+pub(open) trait VersionPort {
+  async fn version_names(Self) -> Array[String] raise @trac.TracError
+  async fn get_version(Self, String) -> @json.Json raise @trac.TracError
+  async fn create_version(Self, String, @versions.Changes) -> Unit raise @trac.TracError
+  async fn update_version(Self, String, @versions.Changes) -> Unit raise @trac.TracError
+  async fn delete_version(Self, String) -> Unit raise @trac.TracError
+}
+pub impl VersionPort for @trac.Trac
 
 pub(open) trait WikiPort {
   async fn wiki_page_names(Self) -> Array[String] raise @trac.TracError

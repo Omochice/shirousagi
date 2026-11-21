@@ -9,6 +9,7 @@ pub fn registered_tools(
     @tools.wiki_tool(trac, mode),
     @tools.milestones_tool(trac, mode),
     @tools.components_tool(trac, mode),
+    @tools.versions_tool(trac, mode),
     @tools.attachments_tool(trac, mode),
     @tools.search_tool(trac),
     @tools.server_info_tool(trac),
