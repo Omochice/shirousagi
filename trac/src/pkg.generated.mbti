@@ -37,6 +37,12 @@ pub fn TracError::to_string(Self) -> String
 pub impl Show for TracError
 
 // Types and methods
+pub(all) enum Moment {
+  At(String)
+  Unset
+}
+pub fn Moment::to_wire(Self) -> @json.Json
+
 pub struct Trac {
   // private fields
 }

@@ -23,7 +23,7 @@ fn FakeMilestones::record(
 ///|
 /// `Changes` derives nothing to compare it by, so the fakes log it as text.
 fn changes_label(changes : @milestones.Changes) -> String {
-  fn moment(moment : @milestones.Moment?) -> String {
+  fn moment(moment : @trac.Moment?) -> String {
     match moment {
       Some(At(iso)) => iso
       Some(Unset) => "unset"
