@@ -118,3 +118,37 @@ async test "the viewer's create is an error payload with Trac's 403" {
     fail("unexpected failure payload \{called.payload.stringify()}")
   }
 }
+
+///|
+async test "trac_tickets mails on request and reports the ticket among recent changes" {
+  let server = full()
+  guard succeed(server, "trac_tickets", {
+      "create": {
+        "summary": Json(@livetest.unique("recent ticket ")),
+        "description": "",
+        "notify": true,
+      },
+    })
+    is { "id": Number(id, ..), .. } else {
+    fail("create did not answer an id")
+  }
+  let id = id.to_int()
+  defer @livetest.cleanup(() => {
+    ignore(succeed(server, "trac_tickets", { "delete": { "id": Json(id) } }))
+  })
+  ignore(
+    succeed(server, "trac_tickets", {
+      "update": { "id": Json(id), "comment": "mailed", "notify": true },
+    }),
+  )
+  guard succeed(server, "trac_tickets", {
+      "recent_changes": { "since": "2000-01-01T09:00:00+09:00" },
+    })
+    is Array(ids) else {
+    fail("recent_changes did not answer an array")
+  }
+  assert_true(
+    ids.contains(Json(id)),
+    msg="ticket \{id} is not among the recent changes",
+  )
+}
