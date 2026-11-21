@@ -1,18 +1,10 @@
 ///|
-/// A milestone date to set, or `Unset` to clear it.
-pub(all) enum Moment {
-  /// ISO 8601 text, read as UTC when it has no offset.
-  At(String)
-  Unset
-}
-
-///|
 /// The fields a create or update writes; a field left `None` is not sent.
 pub(all) struct Changes {
   /// Renames the milestone; only `update` sends it.
   name : String?
-  due : Moment?
-  completed : Moment?
+  due : @trac.Moment?
+  completed : @trac.Moment?
   description : String?
 }
 
@@ -20,20 +12,11 @@ pub(all) struct Changes {
 /// Changes that write nothing until fields are set.
 pub fn Changes::new(
   name? : String,
-  due? : Moment,
-  completed? : Moment,
+  due? : @trac.Moment,
+  completed? : @trac.Moment,
   description? : String,
 ) -> Changes {
   { name, due, completed, description, }
-}
-
-///|
-/// TracXMLRPC reads `0` as "no date", the same value it answers for an unset one.
-fn Moment::to_wire(self : Moment) -> Json {
-  match self {
-    At(iso) => @trac.datetime(iso)
-    Unset => Json(0)
-  }
 }
 
 ///|
