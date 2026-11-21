@@ -1,7 +1,7 @@
 # shirousagi
 
 An MCP server for [Trac](https://trac.edgewall.org/), written in MoonBit.
-It gives an MCP client tickets, the wiki, milestones and search of one Trac project over stdio.
+It gives an MCP client the tickets, wiki, attachments, milestones, components, versions, ticket field values and search of one Trac project over stdio.
 
 The username and password live together in the OS credential store (the macOS keychain, the Secret Service on Linux, or the Windows Credential Manager).
 The password is never put in a config file, an environment variable or an argument list; only the username is passed as an argument, to `login`.
@@ -47,17 +47,34 @@ On macOS a keychain item is readable without a prompt only by the executable tha
 Each tool takes exactly one key, the action name, whose value holds that action's arguments, e.g. `{"get": {"id": 42}}`.
 The readonly column lists what `--readonly` keeps.
 
-| Tool              | Readonly                                         | Also in full mode            |
-| ----------------- | ------------------------------------------------ | ---------------------------- |
-| `trac_tickets`    | `query`, `get`, `changelog`, `actions`, `fields` | `create`, `update`, `delete` |
-| `trac_wiki`       | `list`, `get`, `info`, `recent_changes`          | `put`, `delete`              |
-| `trac_milestones` | `list`, `get`                                    | `create`, `update`, `delete` |
-| `trac_search`     | `search`, `filters`                              |                              |
-| `shirousagi_info` | `show`, `ping`                                   |                              |
+| Tool               | Readonly                                                                         | Also in full mode            |
+| ------------------ | -------------------------------------------------------------------------------- | ---------------------------- |
+| `trac_tickets`     | `query`, `get`, `changelog`, `actions`, `fields`, `recent_changes`               | `create`, `update`, `delete` |
+| `trac_wiki`        | `list`, `get`, `info`, `recent_changes`, `html`, `render`                        | `put`, `delete`              |
+| `trac_attachments` | `list`, `get`                                                                    | `put`, `delete`              |
+| `trac_milestones`  | `list`, `get`                                                                    | `create`, `update`, `delete` |
+| `trac_components`  | `list`, `get`                                                                    | `create`, `update`, `delete` |
+| `trac_versions`    | `list`, `get`                                                                    | `create`, `update`, `delete` |
+| `trac_enums`       | `list`, `get`, `statuses`                                                        | `create`, `update`, `delete` |
+| `trac_search`      | `search`, `filters`                                                              |                              |
+| `shirousagi_info`  | `show`, `ping`, `wiki_rpc_version`, `methods`, `method_help`, `method_signature` |                              |
 
 A ticket `update` takes as `ts` the `_ts` that `get` answers, so Trac refuses it when someone changed the ticket in between.
 Datetimes are ISO 8601 text with an optional offset, such as `2030-01-31T09:00:00+09:00`, and are answered in UTC.
 A failure answers `{"status": ..., "errors": [...]}`, where the status is Trac's fault code or the HTTP status, and 0 for a failure that has neither.
+
+`trac_attachments` names the owner with exactly one of `ticket` and `page`, and carries the content as base64 in `content_base64`, because tool arguments and results are JSON text and attachments are often binary.
+Its `list` answers the size, time and author of a ticket's attachments only, since TracXMLRPC answers no more than the filenames for a wiki page.
+A `put` without `replace` keeps an existing attachment of the same name, and Trac stores the new one under a numbered name such as `a.2.bin`, which `put` answers.
+`trac_enums` covers the lists of the ticket fields `type`, `resolution`, `priority` and `severity`, chosen by `kind`.
+
+Some TracXMLRPC methods are left out on purpose.
+
+- `system.multicall` is in the SDK only, because a raw batch can name any method and would let a readonly server express a write.
+- `ticket.status.get`, `create`, `update` and `delete` do nothing in the plugin, since the workflow configuration defines the statuses, so only `statuses` lists them.
+- `ticket.getAvailableActions` is a deprecated duplicate of `ticket.getActions`, which the `actions` action already calls.
+- The `when` argument of `ticket.changeLog` is ignored by the plugin, so `changelog` always answers the whole history.
+- `wiki.listLinks` is not implemented by the plugin and always answers an empty list.
 
 ## Development
 
