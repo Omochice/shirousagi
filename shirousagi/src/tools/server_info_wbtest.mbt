@@ -19,6 +19,30 @@ impl ServerInfoPort for FakeServerInfo with fn trac_api_version(self) {
 }
 
 ///|
+impl ServerInfoPort for FakeServerInfo with fn wiki_rpc_version(self) {
+  self.calls.push("wiki_rpc_version")
+  2
+}
+
+///|
+impl ServerInfoPort for FakeServerInfo with fn trac_methods(self) {
+  self.calls.push("methods")
+  ["system.listMethods", "ticket.get"]
+}
+
+///|
+impl ServerInfoPort for FakeServerInfo with fn trac_method_help(self, name) {
+  self.calls.push("help \{name}")
+  "array ticket.get(int id)"
+}
+
+///|
+impl ServerInfoPort for FakeServerInfo with fn trac_method_signature(self, name) {
+  self.calls.push("signature \{name}")
+  ["array,int"]
+}
+
+///|
 async test "show reports the version and a null build from source without contacting Trac" {
   let fake = FakeServerInfo::new(failure=Transport(message="unreachable"))
   let called = call_tool(
@@ -73,4 +97,45 @@ async test "ping turns a rejected login into a failure payload" {
 ///|
 test "the checked-in build info is empty" {
   assert_true(@build.build is None)
+}
+
+///|
+async test "the introspection actions reach their port methods and answer their JSON" {
+  let fake = FakeServerInfo::new()
+  let tools = [server_info_tool(fake)]
+  let requests : Array[(Json, String)] = [
+    ({ "wiki_rpc_version": {} }, "{\"wiki_rpc_version\":2}"),
+    ({ "methods": {} }, "[\"system.listMethods\",\"ticket.get\"]"),
+    (
+      { "method_help": { "name": "ticket.get" } },
+      "\"array ticket.get(int id)\"",
+    ),
+    ({ "method_signature": { "name": "ticket.get" } }, "[\"array,int\"]"),
+  ]
+  for entry in requests {
+    assert_eq(call_tool(tools, "shirousagi_info", entry.0).text, entry.1)
+  }
+  assert_eq(fake.calls, [
+    "wiki_rpc_version", "methods", "help ticket.get", "signature ticket.get",
+  ])
+}
+
+///|
+async test "method_help and method_signature need a method name" {
+  let fake = FakeServerInfo::new()
+  let tools = [server_info_tool(fake)]
+  for action in ["method_help", "method_signature"] {
+    let called = call_tool(
+      tools,
+      "shirousagi_info",
+      Json::object(Map([(action, { "name": "" })])),
+    )
+    assert_true(
+      called.text.contains(
+        "invalid arguments: \{action}.name: must not be blank",
+      ),
+      msg=called.text,
+    )
+  }
+  assert_eq(fake.calls, [])
 }
