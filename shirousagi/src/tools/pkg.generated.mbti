@@ -9,6 +9,7 @@ import {
   "omochice/trac",
   "omochice/trac/attachments",
   "omochice/trac/components",
+  "omochice/trac/enums",
   "omochice/trac/milestones",
   "omochice/trac/versions",
 }
@@ -17,6 +18,8 @@ import {
 pub fn attachments_tool(&AttachmentPort, Mode) -> @mcp.Tool
 
 pub fn components_tool(&ComponentPort, Mode) -> @mcp.Tool
+
+pub fn enums_tool(&EnumPort, Mode) -> @mcp.Tool
 
 pub fn milestones_tool(&MilestonePort, Mode) -> @mcp.Tool
 
@@ -59,6 +62,16 @@ pub(open) trait ComponentPort {
   async fn delete_component(Self, String) -> Unit raise @trac.TracError
 }
 pub impl ComponentPort for @trac.Trac
+
+pub(open) trait EnumPort {
+  async fn enum_names(Self, @enums.Kind) -> Array[String] raise @trac.TracError
+  async fn get_enum(Self, @enums.Kind, String) -> String raise @trac.TracError
+  async fn ticket_statuses(Self) -> Array[String] raise @trac.TracError
+  async fn create_enum(Self, @enums.Kind, String, value~ : String) -> Unit raise @trac.TracError
+  async fn update_enum(Self, @enums.Kind, String, value~ : String) -> Unit raise @trac.TracError
+  async fn delete_enum(Self, @enums.Kind, String) -> Unit raise @trac.TracError
+}
+pub impl EnumPort for @trac.Trac
 
 pub(open) trait MilestonePort {
   async fn milestone_names(Self) -> Array[String] raise @trac.TracError

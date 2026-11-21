@@ -6,6 +6,7 @@ import {
   "omochice/trac",
   "omochice/trac/attachments",
   "omochice/trac/components",
+  "omochice/trac/enums",
   "omochice/trac/milestones",
   "omochice/trac/search",
   "omochice/trac/tickets",
