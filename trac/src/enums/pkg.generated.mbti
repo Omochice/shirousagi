@@ -1,0 +1,33 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "omochice/trac/enums"
+
+import {
+  "omochice/trac",
+}
+
+// Values
+pub async fn create(@trac.Trac, Kind, String, String) -> Unit raise @trac.TracError
+
+pub async fn delete(@trac.Trac, Kind, String) -> Unit raise @trac.TracError
+
+pub async fn get(@trac.Trac, Kind, String) -> String raise @trac.TracError
+
+pub async fn names(@trac.Trac, Kind) -> Array[String] raise @trac.TracError
+
+pub async fn statuses(@trac.Trac) -> Array[String] raise @trac.TracError
+
+pub async fn update(@trac.Trac, Kind, String, String) -> Unit raise @trac.TracError
+
+// Errors
+
+// Types and methods
+pub(all) enum Kind {
+  Type
+  Resolution
+  Priority
+  Severity
+}
+
+// Type aliases
+
+// Traits
