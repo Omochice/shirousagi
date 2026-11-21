@@ -54,6 +54,18 @@ impl WikiPort for FakeWiki with fn recent_wiki_changes(self, since) {
 }
 
 ///|
+impl WikiPort for FakeWiki with fn wiki_page_html(self, name, version?) {
+  self.record("html \{name}\{version_label(version)}")
+  "<html><body><h1>Welcome</h1></body></html>"
+}
+
+///|
+impl WikiPort for FakeWiki with fn render_wiki(self, text) {
+  self.record("render \{text}")
+  "<h1>hi</h1>"
+}
+
+///|
 impl WikiPort for FakeWiki with fn put_wiki_page(self, name, text~, comment?) {
   self.record("put \{name}")
   self.puts.push((name, text, comment))
@@ -173,7 +185,7 @@ async test "wiki: readonly mode makes put and delete unknown" {
     )
     assert_eq(
       called.text,
-      "{\"status\":0,\"errors\":[\"invalid arguments: unknown action `\{action}`, one of `list`, `get`, `info` and `recent_changes`\"]}",
+      "{\"status\":0,\"errors\":[\"invalid arguments: unknown action `\{action}`, one of `list`, `get`, `info`, `recent_changes`, `html` and `render`\"]}",
     )
   }
   assert_eq(fake.calls, [])
@@ -191,7 +203,9 @@ async test "wiki: readonly mode makes put and delete unknown" {
     } else {
     fail("no keyed schema in \{listed.stringify()}")
   }
-  assert_eq(actions.keys().collect(), ["list", "get", "info", "recent_changes"])
+  assert_eq(actions.keys().collect(), [
+    "list", "get", "info", "recent_changes", "html", "render",
+  ])
   assert_true(text.has_prefix("List and show Trac wiki pages."))
   assert_false(text.contains("`put`"))
 }
@@ -216,4 +230,38 @@ async test "wiki: a Trac failure becomes a failure payload" {
       "{\"status\":404,\"errors\":[\"Wiki page \\\"X\\\" does not exist\"]}",
     )
   }
+}
+
+///|
+async test "html and render reach their port methods and answer their JSON" {
+  let fake = FakeWiki::new()
+  let tools = wiki_tools(fake, mode=Readonly)
+  let page = call_tool(tools, "trac_wiki", {
+    "html": { "name": "WikiStart", "version": 2 },
+  })
+  assert_eq(page.text, "\"<html><body><h1>Welcome</h1></body></html>\"")
+  let rendered = call_tool(tools, "trac_wiki", { "render": { "text": "= hi" } })
+  assert_eq(rendered.text, "\"<h1>hi</h1>\"")
+  assert_eq(fake.calls, ["html WikiStart@2", "render = hi"])
+}
+
+///|
+async test "wiki: render needs the text, and html a valid version" {
+  let fake = FakeWiki::new()
+  let tools = wiki_tools(fake)
+  let cases : Array[(Json, String)] = [
+    ({ "render": {} }, "invalid arguments: render.text: is required"),
+    (
+      { "html": { "name": "WikiStart", "version": 0 } },
+      "invalid arguments: html.version: must be at least 1",
+    ),
+  ]
+  for entry in cases {
+    let called = call_tool(tools, "trac_wiki", entry.0)
+    assert_true(
+      called.text.contains(entry.1),
+      msg="\{called.text} lacks \{entry.1}",
+    )
+  }
+  assert_eq(fake.calls, [])
 }
