@@ -96,4 +96,5 @@ tasks:
       SHIROUSAGI_TEST_VIEWER_USER: "{{.TRAC_VIEWER_USER}}"
       SHIROUSAGI_TEST_VIEWER_PASSWORD: "{{.TRAC_VIEWER_PASSWORD}}"
     cmds:
-      - moon test {{.CLI_ARGS}}
+      # Trac on SQLite refuses a write that overlaps another with "database is locked", so the packages run one after another and their moon.pkg runs one test at a time.
+      - moon test --no-parallelize {{.CLI_ARGS}}
