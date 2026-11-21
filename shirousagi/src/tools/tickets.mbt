@@ -5,6 +5,7 @@ priv enum TicketAction {
   Changelog(Int32)
   Actions(Int32)
   Fields
+  RecentChanges(String)
   Create(
     summary~ : String,
     description~ : String,
@@ -77,6 +78,12 @@ fn tickets_input(mode : Mode) -> @schema.Schema[TicketAction] {
     "fields",
     ticket_fields_schema(["action", "_ts"], "pass them as `action` and `ts`"),
   )
+  let since = @schema.required(
+    "since",
+    iso_datetime().describe(
+      "ISO 8601 datetime such as `2026-11-21T09:00:00Z`; text without an offset is read as UTC.",
+    ),
+  )
   let ts = @schema.optional(
     "ts",
     @schema.not_blank().describe(
@@ -98,6 +105,12 @@ fn tickets_input(mode : Mode) -> @schema.Schema[TicketAction] {
       @schema.record([id.as_member()], v => TicketAction::Actions(v.get(id))),
     ),
     ("fields", @schema.record([], _ => TicketAction::Fields)),
+    (
+      "recent_changes",
+      @schema.record([since.as_member()], v => {
+        TicketAction::RecentChanges(v.get(since))
+      }),
+    ),
   ]
   let write = [
     (
@@ -151,6 +164,7 @@ fn tickets_description(mode : Mode) -> String {
   let reading = [
     "`query` answers the ids of the matching tickets; `get` answers one ticket's fields with its `id` and its `_ts` change token.",
     "`changelog` answers a ticket's history oldest first, `fields` the project's ticket fields with their types and allowed values.",
+    "`recent_changes` answers the ids of the tickets changed since a datetime.",
   ]
   let lines = match mode {
     Readonly =>
@@ -181,6 +195,7 @@ pub fn tickets_tool(port : &TicketPort, mode : Mode) -> @mcp.Tool {
         Changelog(id) => respond(() => port.ticket_changelog(id))
         Actions(id) => respond(() => port.ticket_actions(id))
         Fields => respond(() => port.ticket_fields())
+        RecentChanges(since) => respond(() => port.recent_ticket_changes(since))
         Create(summary~, description~, fields~) =>
           respond(() => {
             let id = port.create_ticket(summary~, description~, fields~)

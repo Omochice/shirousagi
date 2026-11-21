@@ -8,6 +8,7 @@ pub(open) trait TicketPort {
   async fn ticket_changelog(Self, id : Int32) -> Array[Json] raise @trac.TracError
   async fn ticket_actions(Self, id : Int32) -> Array[Json] raise @trac.TracError
   async fn ticket_fields(Self) -> Json raise @trac.TracError
+  async fn recent_ticket_changes(Self, since : String) -> Array[Int32] raise @trac.TracError
   async fn create_ticket(
     Self,
     summary~ : String,
@@ -57,6 +58,11 @@ pub impl TicketPort for @trac.Trac with fn ticket_actions(self, id) {
 ///|
 pub impl TicketPort for @trac.Trac with fn ticket_fields(self) {
   self |> @tickets.fields()
+}
+
+///|
+pub impl TicketPort for @trac.Trac with fn recent_ticket_changes(self, since) {
+  self |> @tickets.recent_changes(since)
 }
 
 ///|

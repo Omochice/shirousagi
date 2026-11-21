@@ -74,6 +74,7 @@ async test "the server lists every tool with all its actions" {
       #|    "changelog",
       #|    "actions",
       #|    "fields",
+      #|    "recent_changes",
       #|    "create",
       #|    "update",
       #|    "delete",
@@ -93,7 +94,7 @@ async test "readonly mode lists every tool without its write actions" {
     advertised_actions(true),
     content=(
       #|{
-      #|  "trac_tickets": ["query", "get", "changelog", "actions", "fields"],
+      #|  "trac_tickets": ["query", "get", "changelog", "actions", "fields", "recent_changes"],
       #|  "trac_wiki": ["list", "get", "info", "recent_changes"],
       #|  "trac_milestones": ["list", "get"],
       #|  "trac_search": ["search", "filters"],
