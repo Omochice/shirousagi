@@ -120,6 +120,8 @@ pub(open) trait WikiPort {
   async fn get_wiki_page(Self, String, version? : Int32) -> String raise @trac.TracError
   async fn wiki_page_info(Self, String, version? : Int32) -> @json.Json raise @trac.TracError
   async fn recent_wiki_changes(Self, String) -> @json.Json raise @trac.TracError
+  async fn wiki_page_html(Self, String, version? : Int32) -> String raise @trac.TracError
+  async fn render_wiki(Self, String) -> String raise @trac.TracError
   async fn put_wiki_page(Self, String, text~ : String, comment? : String) -> Unit raise @trac.TracError
   async fn delete_wiki_page(Self, String, version? : Int32) -> Unit raise @trac.TracError
 }

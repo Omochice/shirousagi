@@ -79,7 +79,16 @@ async test "the server lists every tool with all its actions" {
       #|    "update",
       #|    "delete",
       #|  ],
-      #|  "trac_wiki": ["list", "get", "info", "recent_changes", "put", "delete"],
+      #|  "trac_wiki": [
+      #|    "list",
+      #|    "get",
+      #|    "info",
+      #|    "recent_changes",
+      #|    "html",
+      #|    "render",
+      #|    "put",
+      #|    "delete",
+      #|  ],
       #|  "trac_milestones": ["list", "get", "create", "update", "delete"],
       #|  "trac_components": ["list", "get", "create", "update", "delete"],
       #|  "trac_versions": ["list", "get", "create", "update", "delete"],
@@ -99,7 +108,7 @@ async test "readonly mode lists every tool without its write actions" {
     content=(
       #|{
       #|  "trac_tickets": ["query", "get", "changelog", "actions", "fields", "recent_changes"],
-      #|  "trac_wiki": ["list", "get", "info", "recent_changes"],
+      #|  "trac_wiki": ["list", "get", "info", "recent_changes", "html", "render"],
       #|  "trac_milestones": ["list", "get"],
       #|  "trac_components": ["list", "get"],
       #|  "trac_versions": ["list", "get"],
