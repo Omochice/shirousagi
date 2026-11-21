@@ -17,6 +17,12 @@ pub async fn call(Trac, String, Array[@json.Json]) -> @json.Json raise TracError
 
 pub fn datetime(String) -> @json.Json
 
+pub async fn method_help(Trac, String) -> String raise TracError
+
+pub async fn method_signature(Trac, String) -> Array[String] raise TracError
+
+pub async fn methods(Trac) -> Array[String] raise TracError
+
 pub fn new(endpoint~ : String, username~ : String, password~ : String) -> Trac raise TracError
 
 pub fn unexpected(String) -> TracError
