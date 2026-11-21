@@ -75,6 +75,46 @@ test "a datetime parameter is wrapped as TracXMLRPC expects" {
 }
 
 ///|
+test "a binary parameter is wrapped as base64 and read back byte for byte" {
+  let bytes = b"\xff\x00a"
+  let wire = binary(bytes)
+  inspect(
+    wire.stringify(),
+    content=(
+      #|{"__jsonclass__":["binary","/wBh"]}
+    ),
+  )
+  assert_eq(bytes_of(wire), Some(bytes))
+}
+
+///|
+test "a binary result survives interpret untouched" {
+  let reply =
+    #|{"result": {"__jsonclass__": ["binary", "/w=="]}, "error": null, "id": 1}
+  assert_eq(bytes_of(interpret(200, reply)), Some(b"\xff"))
+}
+
+///|
+test "base64 wrapped over lines is read as one value" {
+  assert_eq(
+    bytes_of({ "__jsonclass__": ["binary", "/wBh\n/w==\n"] }),
+    Some(b"\xff\x00a\xff"),
+  )
+}
+
+///|
+test "anything but a well-formed binary value is no bytes" {
+  for
+    json in [
+      Json("/w=="),
+      { "__jsonclass__": ["datetime", "2026-11-21T00:00:00"] },
+      { "__jsonclass__": ["binary", "*"] },
+    ] {
+    assert_eq(bytes_of(json), None, msg=json.stringify())
+  }
+}
+
+///|
 test "the envelope names the method and its positional parameters" {
   inspect(
     envelope("ticket.get", [1]).stringify(),

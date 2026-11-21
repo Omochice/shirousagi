@@ -9,6 +9,10 @@ import {
 // Values
 pub async fn api_version(Trac) -> @json.Json raise TracError
 
+pub fn binary(BytesView) -> @json.Json
+
+pub fn bytes_of(@json.Json) -> Bytes?
+
 pub async fn call(Trac, String, Array[@json.Json]) -> @json.Json raise TracError
 
 pub fn datetime(String) -> @json.Json

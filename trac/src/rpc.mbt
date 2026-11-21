@@ -58,6 +58,25 @@ pub fn datetime(iso : String) -> Json {
 }
 
 ///|
+/// Wraps `bytes` as the binary value TracXMLRPC expects in a parameter, such as an attachment's content.
+pub fn binary(bytes : BytesView) -> Json {
+  { "__jsonclass__": ["binary", Json(@base64.encode(bytes))] }
+}
+
+///|
+/// The bytes of a binary value in a result, or `None` when `json` is not one.
+/// `call` leaves binary values as they came, so that a body is never mistaken for text.
+/// Line breaks inside the base64 text are skipped, because Python's older encoders wrap it.
+pub fn bytes_of(json : Json) -> Bytes? {
+  guard json is { "__jsonclass__": [String("binary"), String(text)], .. } else {
+    return None
+  }
+  Some(@base64.decode(text, ignore_whitespace=true)) catch {
+    _ => None
+  }
+}
+
+///|
 /// The `Decode` failure of a result whose shape the typed functions do not know,
 /// for the resource packages to report it the same way.
 pub fn unexpected(rpc_method : String) -> TracError {
