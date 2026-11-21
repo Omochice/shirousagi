@@ -21,6 +21,8 @@ pub async fn get(@trac.Trac, Int32) -> @json.Json raise @trac.TracError
 
 pub async fn query(@trac.Trac, String) -> Array[Int32] raise @trac.TracError
 
+pub async fn recent_changes(@trac.Trac, String) -> Array[Int32] raise @trac.TracError
+
 pub async fn update(@trac.Trac, Int32, comment? : String, action? : String, fields? : Map[String, @json.Json], ts? : String, notify? : Bool) -> @json.Json raise @trac.TracError
 
 // Errors
