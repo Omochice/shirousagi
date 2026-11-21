@@ -5,6 +5,7 @@ import {
   "omochice/shirousagi/build",
   "omochice/trac",
   "omochice/trac/attachments",
+  "omochice/trac/components",
   "omochice/trac/milestones",
   "omochice/trac/search",
   "omochice/trac/tickets",
