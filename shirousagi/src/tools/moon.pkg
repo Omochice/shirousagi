@@ -9,6 +9,7 @@ import {
   "omochice/trac/milestones",
   "omochice/trac/search",
   "omochice/trac/tickets",
+  "omochice/trac/versions",
   "omochice/trac/wiki",
 }
 
