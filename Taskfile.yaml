@@ -36,13 +36,6 @@ tasks:
     cmds:
       - moon test {{.CLI_ARGS}}
 
-  test:keyring:
-    desc: "Run the keyring tests including the round trip through the OS credential store; arguments after `--` go to `moon test`"
-    deps: [registry]
-    cmds:
-      # The copied keyring module still reads redmoon's variable name.
-      - REDMOON_TEST_KEYRING=1 moon test -p omochice/keyring {{.CLI_ARGS}}
-
   fmt:
     desc: Format MoonBit sources only; `nix fmt` also formats the non-MoonBit files and is the CI gate
     cmds:
