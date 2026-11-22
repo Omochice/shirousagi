@@ -1,0 +1,23 @@
+# Verification harness: a throwaway Trac instance the MCP server can be
+# pointed at during development. Not a production or deployment artifact.
+#
+#   docker compose up -d
+#   open http://localhost:8000/login   (admin / admin-password)
+name: shirousagi
+
+services:
+  trac:
+    build: docker/trac
+    ports:
+      - "8000:8000"
+    environment:
+      TRAC_ADMIN_USER: admin
+      TRAC_ADMIN_PASSWORD: admin-password
+      # Holds XML_RPC on top of the anonymous defaults, so it can read tickets and the wiki but not edit them.
+      TRAC_VIEWER_USER: viewer
+      TRAC_VIEWER_PASSWORD: viewer-password
+    volumes:
+      - trac-env:/var/trac
+
+volumes:
+  trac-env:
