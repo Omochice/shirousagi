@@ -1,5 +1,5 @@
 {
-  description = "sample description";
+  description = "Trac MCP server by moonbit";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixpkgs-unstable";
@@ -16,6 +16,10 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    moonbit-overlay = {
+      url = "github:moonbit-community/moonbit-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -26,6 +30,7 @@
       flake-utils,
       nur-packages,
       git-hooks,
+      moonbit-overlay,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -34,8 +39,11 @@
           inherit system;
           overlays = [
             nur-packages.overlays.default
+            moonbit-overlay.overlays.default
           ];
         };
+        # moonbit-overlay publishes toolchains only for aarch64-darwin and x86_64-linux.
+        moonbitToolchain = pkgs.lib.optional (pkgs.moonbit-bin ? latest) pkgs.moonbit-bin.latest;
         treefmt = treefmt-nix.lib.evalModule pkgs (
           { ... }:
           let
@@ -57,6 +65,25 @@
           in
           {
             settings.global.excludes = [ ];
+            settings.formatter.moonfmt = pkgs.lib.mkIf (moonbitToolchain != [ ]) {
+              command = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "moonfmt-each";
+                  runtimeInputs = moonbitToolchain;
+                  text = ''
+                    for file in "$@"; do
+                      moonfmt -w "$file"
+                    done
+                  '';
+                }
+              );
+              includes = [
+                "*.mbt"
+                "*.mbt.md"
+                "moon.mod"
+                "moon.pkg"
+              ];
+            };
             settings.formatter.rumdl-format.options = [
               "--config"
               (toString rumdlConfig)
@@ -124,11 +151,14 @@
             ghalint
             zizmor
           ];
+          moonbit = moonbitToolchain;
           # keep-sorted end
           default = [
+            pkgs.go-task
             treefmt.config.build.wrapper
           ]
-          ++ actions;
+          ++ actions
+          ++ moonbit;
         };
       in
       {
@@ -172,10 +202,20 @@
         devShells = pkgs.lib.pipe devPackages [
           (pkgs.lib.attrsets.mapAttrs (
             name: buildInputs:
-            pkgs.mkShell {
-              buildInputs = buildInputs ++ pre-commit-check.enabledPackages;
-              inherit (pre-commit-check) shellHook;
-            }
+            pkgs.mkShell (
+              {
+                buildInputs =
+                  buildInputs
+                  ++ pre-commit-check.enabledPackages
+                  ++ pkgs.lib.optional pkgs.stdenv.hostPlatform.isDarwin pkgs.llvmPackages.lld;
+                inherit (pre-commit-check) shellHook;
+              }
+              # nixpkgs' ld64 cannot build compact unwind info for moonc's output and
+              # prints a warning per function; lld from the same LLVM release builds it.
+              // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+                NIX_CFLAGS_LINK = "-fuse-ld=lld";
+              }
+            )
           ))
         ];
         formatter = treefmt.config.build.wrapper;
