@@ -88,4 +88,5 @@ task trac:reset       # remove it together with its data
 
 The throwaway Trac has an administrator `admin` and a user `viewer` that may read but not edit, so a refused write can be tested.
 
-The `keyring`, `schema` and `mcp` modules, and the `tty` and `build` packages, are copied unchanged from [redmoon](https://github.com/Omochice/redmoon) at 8c13a28, so that they can later be merged into shared modules.
+The `keyring`, `schema` and `mcp` modules come from mooncakes as `Omochice/keyring`, `Omochice/schema` and `Omochice/mcp`, which are developed in [moonmoon](https://github.com/Omochice/moonmoon).
+The `tty` and `build` packages are copied unchanged from [redmoon](https://github.com/Omochice/redmoon) at 8c13a28, so that they can later be merged into shared modules.
