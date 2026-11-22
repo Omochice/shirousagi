@@ -2,8 +2,8 @@ import {
   "moonbitlang/core/argparse",
   "moonbitlang/core/debug",
   "moonbitlang/core/json",
-  "omochice/keyring",
-  "omochice/mcp",
+  "Omochice/keyring",
+  "Omochice/mcp",
   "omochice/shirousagi/build",
   "omochice/shirousagi/tools",
   "omochice/trac",
@@ -14,7 +14,7 @@ import {
   "moonbitlang/async/io",
   "moonbitlang/core/debug",
   "moonbitlang/core/json",
-  "omochice/mcp",
+  "Omochice/mcp",
   "omochice/trac",
 } for "test"
 

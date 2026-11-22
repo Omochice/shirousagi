@@ -2,9 +2,9 @@
 package "omochice/shirousagi/tools"
 
 import {
+  "Omochice/mcp",
+  "Omochice/schema",
   "moonbitlang/core/json",
-  "omochice/mcp",
-  "omochice/schema",
   "omochice/shirousagi/build",
   "omochice/trac",
   "omochice/trac/attachments",

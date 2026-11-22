@@ -1,8 +1,5 @@
 members = [
   ".",
-  "../keyring",
-  "../mcp",
-  "../schema",
   "../shirousagi",
   "../trac",
 ]
