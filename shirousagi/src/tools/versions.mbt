@@ -19,7 +19,7 @@ fn versions_input(mode : Mode) -> @schema.Schema[VersionAction] {
     "new_name",
     resource_name("New name for the version."),
   )
-  let time_text = "When the version was or will be released, as an ISO 8601 datetime such as `2026-11-21T09:00:00Z`; text without an offset is read as UTC."
+  let time_text = "When the version was or will be released, as an \{iso_datetime_hint}"
   let time = @schema.optional("time", moment(time_text))
   let update_time = @schema.optional(
     "time",

@@ -33,3 +33,8 @@ test "iso_datetime reports the expected form" {
     _ => fail("yesterday was accepted")
   }
 }
+
+///|
+test "the example shown to a model is itself accepted" {
+  assert_true(is_iso_datetime(iso_datetime_example), msg=iso_datetime_example)
+}

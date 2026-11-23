@@ -17,7 +17,7 @@ fn milestones_input(mode : Mode) -> @schema.Schema[MilestoneAction] {
     "new_name",
     resource_name("New name for the milestone."),
   )
-  let due_text = "When the milestone is due, as an ISO 8601 datetime such as `2026-11-21T09:00:00Z`; text without an offset is read as UTC."
+  let due_text = "When the milestone is due, as an \{iso_datetime_hint}"
   let completed_text = "When the milestone was completed, as an ISO 8601 datetime; setting it marks the milestone completed."
   let due = @schema.optional("due", moment(due_text))
   let completed = @schema.optional("completed", moment(completed_text))

@@ -8,12 +8,7 @@ fn ticket_id() -> @schema.Schema[Int32] {
 
 ///|
 fn since() -> @schema.Field[String] {
-  @schema.required(
-    "since",
-    iso_datetime().describe(
-      "ISO 8601 datetime such as `2026-11-21T09:00:00Z`; text without an offset is read as UTC.",
-    ),
-  )
+  @schema.required("since", iso_datetime().describe(iso_datetime_hint))
 }
 
 ///|
