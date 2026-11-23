@@ -7,6 +7,16 @@ fn ticket_id() -> @schema.Schema[Int32] {
 }
 
 ///|
+fn since() -> @schema.Field[String] {
+  @schema.required(
+    "since",
+    iso_datetime().describe(
+      "ISO 8601 datetime such as `2026-11-21T09:00:00Z`; text without an offset is read as UTC.",
+    ),
+  )
+}
+
+///|
 /// An object whose values are all strings, under any keys.
 /// `@schema.record` cannot express it because Trac fields are named by the
 /// project's configuration, custom fields included, rather than known here.

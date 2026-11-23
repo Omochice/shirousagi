@@ -32,12 +32,7 @@ fn wiki_input(mode : Mode) -> @schema.Schema[WikiAction] {
       "Delete only this version of the page; the whole page with its history when left out.",
     ),
   )
-  let since = @schema.required(
-    "since",
-    iso_datetime().describe(
-      "ISO 8601 datetime such as `2026-11-21T09:00:00Z`; text without an offset is read as UTC.",
-    ),
-  )
+  let since = since()
   let text = @schema.required(
     "text",
     @schema.string().describe(
