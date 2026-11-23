@@ -1,0 +1,11 @@
+import {
+  "moonbitlang/async",
+  "omochice/integration-test/livetest",
+  "omochice/trac",
+  "omochice/trac/milestones",
+  "omochice/trac/search",
+  "omochice/trac/tickets",
+  "omochice/trac/wiki",
+} for "test"
+
+supported_targets = "+native"

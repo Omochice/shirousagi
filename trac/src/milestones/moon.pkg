@@ -1,0 +1,5 @@
+import {
+  "omochice/trac",
+}
+
+supported_targets = "+native"

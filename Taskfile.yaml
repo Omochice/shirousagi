@@ -1,0 +1,92 @@
+version: "3"
+
+vars:
+  TRAC_URL: http://localhost:8000
+  # The accounts compose.yaml creates; they guard nothing but a local throwaway instance.
+  TRAC_ADMIN_USER: admin
+  TRAC_ADMIN_PASSWORD: admin-password
+  TRAC_VIEWER_USER: viewer
+  TRAC_VIEWER_PASSWORD: viewer-password
+
+tasks:
+  registry:
+    desc: Fetch the mooncakes registry index unless this machine already has it
+    status:
+      - test -d "${MOON_HOME:-$HOME/.moon}/registry/index"
+    cmds:
+      - moon update
+
+  check:
+    desc: Type-check every package, the integration tests included, and fail on warnings
+    deps: [registry]
+    cmds:
+      - moon check --deny-warn
+      - task: check:integration-test
+
+  check:integration-test:
+    desc: Type-check the integration-test module, which the root workspace leaves out, and fail on warnings
+    deps: [registry]
+    dir: integration-test
+    cmds:
+      - moon check --deny-warn
+
+  test:
+    desc: "Run the unit tests; arguments after `--` go to `moon test`"
+    deps: [registry]
+    cmds:
+      - moon test {{.CLI_ARGS}}
+
+  fmt:
+    desc: Format MoonBit sources only; `nix fmt` also formats the non-MoonBit files and is the CI gate
+    cmds:
+      - moon fmt
+
+  build:
+    desc: Build the release executable with the installed toolchain
+    deps: [registry]
+    cmds:
+      - moon build --target native --release shirousagi/src/cmd/shirousagi
+
+  trac:up:
+    desc: Start the throwaway Trac and wait until its RPC handler answers
+    cmds:
+      - docker compose up -d --build
+      - |
+        for _ in $(seq 1 60); do
+          # The anonymous handler needs no login and still answers JSON only once the plugin is loaded.
+          if curl -sf -H 'Content-Type: application/json' \
+            -d '{"method":"system.getAPIVersion","params":[],"id":1}' \
+            {{.TRAC_URL}}/rpc | grep -q '"id": 1'; then
+            exit 0
+          fi
+          if [ -n "$(docker compose ps --status exited -q)" ]; then
+            break
+          fi
+          sleep 2
+        done
+        echo "Trac never answered on {{.TRAC_URL}}" >&2
+        docker compose logs
+        exit 1
+
+  trac:down:
+    desc: Stop the throwaway Trac and keep its environment volume
+    cmds:
+      - docker compose down
+
+  trac:reset:
+    desc: Stop the throwaway Trac and delete its environment, so the next start initializes a fresh one
+    cmds:
+      - docker compose down -v
+
+  test:integration:
+    desc: "Run the integration-test module against the throwaway Trac started by `task trac:up`; arguments after `--` go to `moon test`"
+    deps: [registry]
+    dir: integration-test
+    env:
+      SHIROUSAGI_TEST_ENDPOINT: "{{.TRAC_URL}}"
+      SHIROUSAGI_TEST_ADMIN_USER: "{{.TRAC_ADMIN_USER}}"
+      SHIROUSAGI_TEST_ADMIN_PASSWORD: "{{.TRAC_ADMIN_PASSWORD}}"
+      SHIROUSAGI_TEST_VIEWER_USER: "{{.TRAC_VIEWER_USER}}"
+      SHIROUSAGI_TEST_VIEWER_PASSWORD: "{{.TRAC_VIEWER_PASSWORD}}"
+    cmds:
+      - moon test {{.CLI_ARGS}}

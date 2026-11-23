@@ -1,0 +1,25 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "omochice/integration-test/livetest"
+
+import {
+  "omochice/trac",
+}
+
+// Values
+pub fn admin() -> @trac.Trac raise
+
+pub async fn cleanup(async () -> Unit) -> Unit noraise + nocancel
+
+pub fn endpoint() -> String raise
+
+pub fn unique(String) -> String
+
+pub fn viewer() -> @trac.Trac raise
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

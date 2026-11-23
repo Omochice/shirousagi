@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "omochice/trac/wiki"
+
+import {
+  "moonbitlang/core/json",
+  "omochice/trac",
+}
+
+// Values
+pub async fn delete(@trac.Trac, String, version? : Int32) -> Unit raise @trac.TracError
+
+pub async fn get(@trac.Trac, String, version? : Int32) -> String raise @trac.TracError
+
+pub async fn info(@trac.Trac, String, version? : Int32) -> @json.Json raise @trac.TracError
+
+pub async fn names(@trac.Trac) -> Array[String] raise @trac.TracError
+
+pub async fn put(@trac.Trac, String, String, comment? : String) -> Unit raise @trac.TracError
+
+pub async fn recent_changes(@trac.Trac, String) -> @json.Json raise @trac.TracError
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
