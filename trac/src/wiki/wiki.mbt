@@ -21,12 +21,9 @@ pub async fn get(
   name : String,
   version? : Int32,
 ) -> String raise @trac.TracError {
-  let json = match version {
-    Some(version) =>
-      trac |> @trac.call("wiki.getPageVersion", [Json(name), Json(version)])
-    None => trac |> @trac.call("wiki.getPage", [Json(name)])
-  }
-  guard json is String(text) else { raise @trac.unexpected("wiki.getPage") }
+  let (rpc_method, params) = versioned("wiki.getPage", name, version)
+  let json = trac |> @trac.call(rpc_method, params)
+  guard json is String(text) else { raise @trac.unexpected(rpc_method) }
   text
 }
 
@@ -41,11 +38,8 @@ pub async fn info(
   name : String,
   version? : Int32,
 ) -> Json raise @trac.TracError {
-  match version {
-    Some(version) =>
-      trac |> @trac.call("wiki.getPageInfoVersion", [Json(name), Json(version)])
-    None => trac |> @trac.call("wiki.getPageInfo", [Json(name)])
-  }
+  let (rpc_method, params) = versioned("wiki.getPageInfo", name, version)
+  trac |> @trac.call(rpc_method, params)
 }
 
 ///|
@@ -105,10 +99,7 @@ pub async fn html(
   name : String,
   version? : Int32,
 ) -> String raise @trac.TracError {
-  let (rpc_method, params) : (String, Array[Json]) = match version {
-    Some(version) => ("wiki.getPageHTMLVersion", [Json(name), Json(version)])
-    None => ("wiki.getPageHTML", [Json(name)])
-  }
+  let (rpc_method, params) = versioned("wiki.getPageHTML", name, version)
   let json = trac |> @trac.call(rpc_method, params)
   guard json is String(html) else { raise @trac.unexpected(rpc_method) }
   html
@@ -139,4 +130,19 @@ pub async fn rpc_version(trac : @trac.Trac) -> Int32 raise @trac.TracError {
     raise @trac.unexpected("wiki.getRPCVersionSupported")
   }
   version.to_int()
+}
+
+///|
+/// The method and parameters that read page `name` through `base`.
+/// WikiRPC reads an older version through a second method, named `base` with `Version` appended,
+/// that takes the version after the name.
+fn versioned(
+  base : String,
+  name : String,
+  version : Int32?,
+) -> (String, Array[Json]) {
+  match version {
+    Some(version) => ("\{base}Version", [Json(name), Json(version)])
+    None => (base, [Json(name)])
+  }
 }
