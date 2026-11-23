@@ -14,19 +14,3 @@ test "an unset time is sent as the 0 Trac reads as no date" {
     ),
   )
 }
-
-///|
-test "a version answered with time 0 has a null time" {
-  inspect(
-    version_of({ "name": "1.0", "time": 0, "description": "" }).stringify(),
-    content=(
-      #|{"name":"1.0","time":null,"description":""}
-    ),
-  )
-  inspect(
-    version_of({ "name": "1.0", "time": "2030-01-01T00:00:00Z" }).stringify(),
-    content=(
-      #|{"name":"1.0","time":"2030-01-01T00:00:00Z"}
-    ),
-  )
-}

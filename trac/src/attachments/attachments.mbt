@@ -45,19 +45,8 @@ pub async fn get(
   target : Target,
   filename : String,
 ) -> Bytes raise @trac.TracError {
-  let (rpc_method, json) = match target {
-    Ticket(id) =>
-      (
-        "ticket.getAttachment",
-        trac |> @trac.call("ticket.getAttachment", [Json(id), Json(filename)]),
-      )
-    Wiki(page) =>
-      (
-        "wiki.getAttachment",
-        trac
-        |> @trac.call("wiki.getAttachment", [Json(path_of(page, filename))]),
-      )
-  }
+  let (rpc_method, params) = addressed("get", target, filename)
+  let json = trac |> @trac.call(rpc_method, params)
   guard @trac.bytes_of(json) is Some(bytes) else {
     raise @trac.unexpected(rpc_method)
   }
@@ -106,21 +95,22 @@ pub async fn delete(
   target : Target,
   filename : String,
 ) -> Unit raise @trac.TracError {
-  let (rpc_method, json) = match target {
-    Ticket(id) =>
-      (
-        "ticket.deleteAttachment",
-        trac
-        |> @trac.call("ticket.deleteAttachment", [Json(id), Json(filename)]),
-      )
-    Wiki(page) =>
-      (
-        "wiki.deleteAttachment",
-        trac
-        |> @trac.call("wiki.deleteAttachment", [Json(path_of(page, filename))]),
-      )
-  }
+  let (rpc_method, params) = addressed("delete", target, filename)
+  let json = trac |> @trac.call(rpc_method, params)
   guard json is True else { raise @trac.unexpected(rpc_method) }
+}
+
+///|
+/// The method and parameters that apply `op`, such as `get`, to attachment `filename` of `target`.
+fn addressed(
+  op : String,
+  target : Target,
+  filename : String,
+) -> (String, Array[Json]) {
+  match target {
+    Ticket(id) => ("ticket.\{op}Attachment", [Json(id), Json(filename)])
+    Wiki(page) => ("wiki.\{op}Attachment", [Json(path_of(page, filename))])
+  }
 }
 
 ///|

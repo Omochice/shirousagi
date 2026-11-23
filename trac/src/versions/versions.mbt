@@ -40,15 +40,7 @@ fn Changes::to_wire(self : Changes) -> Json {
 /// `TracError` as `@trac.call` does.
 pub async fn names(trac : @trac.Trac) -> Array[String] raise @trac.TracError {
   let json = trac |> @trac.call("ticket.version.getAll", [])
-  guard json is Array(names) else {
-    raise @trac.unexpected("ticket.version.getAll")
-  }
-  names.map(name => {
-    guard name is String(name) else {
-      raise @trac.unexpected("ticket.version.getAll")
-    }
-    name
-  })
+  @trac.strings_of("ticket.version.getAll", json)
 }
 
 ///|
@@ -60,7 +52,8 @@ pub async fn get(
   trac : @trac.Trac,
   name : String,
 ) -> Json raise @trac.TracError {
-  version_of(trac |> @trac.call("ticket.version.get", [Json(name)]))
+  let json = trac |> @trac.call("ticket.version.get", [Json(name)])
+  @trac.unset_dates_as_null("ticket.version.get", json, ["time"])
 }
 
 ///|
@@ -104,20 +97,4 @@ pub async fn delete(
   name : String,
 ) -> Unit raise @trac.TracError {
   ignore(trac |> @trac.call("ticket.version.delete", [Json(name)]))
-}
-
-///|
-fn version_of(json : Json) -> Json raise @trac.TracError {
-  guard json is Object(fields) else {
-    raise @trac.unexpected("ticket.version.get")
-  }
-  let version : Map[String, Json] = Map([])
-  for key, value in fields {
-    // Trac answers 0 for an unset time, which a reader would take for the epoch.
-    version[key] = match (key, value) {
-      ("time", Number(0, ..)) => Json::null()
-      _ => value
-    }
-  }
-  Json::object(version)
 }

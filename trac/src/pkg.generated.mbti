@@ -27,7 +27,11 @@ pub async fn multicall(Trac, Array[(String, Array[@json.Json])]) -> Array[Result
 
 pub fn new(endpoint~ : String, username~ : String, password~ : String) -> Trac raise TracError
 
+pub fn strings_of(String, @json.Json) -> Array[String] raise TracError
+
 pub fn unexpected(String) -> TracError
+
+pub fn unset_dates_as_null(String, @json.Json, Array[String]) -> @json.Json raise TracError
 
 // Errors
 #derive(@debug.Debug, @json.ToJson)

@@ -1,7 +1,21 @@
 ///|
-/// The id is fixed because each call opens its own connection and reads exactly one reply.
-fn envelope(rpc_method : String, params : Array[Json]) -> Json {
-  { "method": Json(rpc_method), "params": Json::array(params), "id": 1 }
+/// `id` defaults to a fixed 1 because each call opens its own connection and reads exactly one reply.
+fn envelope(rpc_method : String, params : Array[Json], id~ : Json = 1) -> Json {
+  { "method": Json(rpc_method), "params": Json::array(params), "id": id }
+}
+
+///|
+/// The result or the fault a reply object holds, or `None` when it holds neither.
+/// It does not raise for an unknown shape, because a single call and a batch entry report one differently.
+fn outcome_of(reply : Json) -> Result[Json, TracError]? {
+  match reply {
+    {
+      "error": { "code": Number(code, ..), "message": String(message), .. },
+      ..
+    } => Some(Err(Fault(code=code.to_int(), message~)))
+    { "error": Null, "result": result, .. } => Some(Ok(result))
+    _ => None
+  }
 }
 
 ///|
@@ -18,13 +32,10 @@ fn interpret(status : Int32, text : String) -> Json raise TracError {
   let reply = @json.parse(text) catch {
     _ => raise Decode(message=NOT_JSON_RPC)
   }
-  match reply {
-    {
-      "error": { "code": Number(code, ..), "message": String(message), .. },
-      ..
-    } => raise Fault(code=code.to_int(), message~)
-    { "error": Null, "result": result, .. } => from_wire(result)
-    _ => raise Decode(message=NOT_JSON_RPC)
+  match outcome_of(reply) {
+    Some(Ok(result)) => from_wire(result)
+    Some(Err(fault)) => raise fault
+    None => raise Decode(message=NOT_JSON_RPC)
   }
 }
 
@@ -81,4 +92,20 @@ pub fn unexpected(rpc_method : String) -> TracError {
   Decode(
     message="Trac answered `\{rpc_method}` in a shape this client does not know",
   )
+}
+
+///|
+/// The strings of a result that `rpc_method` answers as a list of text, in Trac's order.
+///
+/// # Raises
+/// `Decode` as `unexpected` reports it when `json` is not an array of strings.
+pub fn strings_of(
+  rpc_method : String,
+  json : Json,
+) -> Array[String] raise TracError {
+  guard json is Array(items) else { raise unexpected(rpc_method) }
+  items.map(item => {
+    guard item is String(text) else { raise unexpected(rpc_method) }
+    text
+  })
 }

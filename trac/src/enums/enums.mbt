@@ -28,7 +28,7 @@ pub async fn names(
   kind : Kind,
 ) -> Array[String] raise @trac.TracError {
   let rpc_method = "\{kind.methods()}.getAll"
-  strings_of(rpc_method, trac |> @trac.call(rpc_method, []))
+  @trac.strings_of(rpc_method, trac |> @trac.call(rpc_method, []))
 }
 
 ///|
@@ -99,20 +99,8 @@ pub async fn delete(
 /// # Raises
 /// `TracError` as `@trac.call` does.
 pub async fn statuses(trac : @trac.Trac) -> Array[String] raise @trac.TracError {
-  strings_of(
+  @trac.strings_of(
     "ticket.status.getAll",
     trac |> @trac.call("ticket.status.getAll", []),
   )
-}
-
-///|
-fn strings_of(
-  rpc_method : String,
-  json : Json,
-) -> Array[String] raise @trac.TracError {
-  guard json is Array(items) else { raise @trac.unexpected(rpc_method) }
-  items.map(item => {
-    guard item is String(text) else { raise @trac.unexpected(rpc_method) }
-    text
-  })
 }

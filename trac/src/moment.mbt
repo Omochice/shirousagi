@@ -15,3 +15,25 @@ pub fn Moment::to_wire(self : Moment) -> Json {
     Unset => Json(0)
   }
 }
+
+///|
+/// The object `rpc_method` answered, with each unset date among `dates` shown as `null`.
+/// Trac answers 0 for an unset date, which a reader would take for the epoch.
+///
+/// # Raises
+/// `Decode` as `unexpected` reports it when `json` is not an object.
+pub fn unset_dates_as_null(
+  rpc_method : String,
+  json : Json,
+  dates : Array[String],
+) -> Json raise TracError {
+  guard json is Object(fields) else { raise unexpected(rpc_method) }
+  let object : Map[String, Json] = Map([])
+  for key, value in fields {
+    object[key] = match value {
+      Number(0, ..) if dates.contains(key) => Json::null()
+      _ => value
+    }
+  }
+  Json::object(object)
+}

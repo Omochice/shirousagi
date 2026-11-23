@@ -42,15 +42,3 @@ pub async fn method_signature(
     trac |> call("system.methodSignature", [Json(name)]),
   )
 }
-
-///|
-fn strings_of(
-  rpc_method : String,
-  json : Json,
-) -> Array[String] raise TracError {
-  guard json is Array(items) else { raise unexpected(rpc_method) }
-  items.map(item => {
-    guard item is String(text) else { raise unexpected(rpc_method) }
-    text
-  })
-}

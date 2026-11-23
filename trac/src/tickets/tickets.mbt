@@ -7,8 +7,7 @@ pub async fn query(
   query : String,
 ) -> Array[Int32] raise @trac.TracError {
   let json = trac |> @trac.call("ticket.query", [Json(query)])
-  guard json is Array(ids) else { raise @trac.unexpected("ticket.query") }
-  ids.map(id_of)
+  ids_of("ticket.query", json)
 }
 
 ///|
@@ -126,12 +125,6 @@ pub async fn actions(
 /// The ticket fields of the project, with their types and, for a select, the allowed values.
 pub async fn fields(trac : @trac.Trac) -> Json raise @trac.TracError {
   trac |> @trac.call("ticket.getTicketFields", [])
-}
-
-///|
-fn id_of(json : Json) -> Int32 raise @trac.TracError {
-  guard json is Number(id, ..) else { raise @trac.unexpected("ticket.query") }
-  id.to_int()
 }
 
 ///|
