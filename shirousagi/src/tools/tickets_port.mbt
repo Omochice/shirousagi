@@ -8,11 +8,13 @@ pub(open) trait TicketPort {
   async fn ticket_changelog(Self, id : Int32) -> Array[Json] raise @trac.TracError
   async fn ticket_actions(Self, id : Int32) -> Array[Json] raise @trac.TracError
   async fn ticket_fields(Self) -> Json raise @trac.TracError
+  async fn recent_ticket_changes(Self, since : String) -> Array[Int32] raise @trac.TracError
   async fn create_ticket(
     Self,
     summary~ : String,
     description~ : String,
     fields~ : Map[String, String],
+    notify? : Bool,
   ) -> Int32 raise @trac.TracError
   async fn update_ticket(
     Self,
@@ -21,6 +23,7 @@ pub(open) trait TicketPort {
     action? : String,
     fields? : Map[String, String],
     ts? : String,
+    notify? : Bool,
   ) -> Json raise @trac.TracError
   async fn delete_ticket(Self, id : Int32) -> Unit raise @trac.TracError
 }
@@ -60,13 +63,25 @@ pub impl TicketPort for @trac.Trac with fn ticket_fields(self) {
 }
 
 ///|
+pub impl TicketPort for @trac.Trac with fn recent_ticket_changes(self, since) {
+  self |> @tickets.recent_changes(since)
+}
+
+///|
 pub impl TicketPort for @trac.Trac with fn create_ticket(
   self,
   summary~,
   description~,
   fields~,
+  notify?,
 ) {
-  self |> @tickets.create(summary~, description~, fields=wire_fields(fields))
+  self
+  |> @tickets.create(
+    summary~,
+    description~,
+    fields=wire_fields(fields),
+    notify?,
+  )
 }
 
 ///|
@@ -77,6 +92,7 @@ pub impl TicketPort for @trac.Trac with fn update_ticket(
   action?,
   fields?,
   ts?,
+  notify?,
 ) {
   self
   |> @tickets.update(
@@ -85,6 +101,7 @@ pub impl TicketPort for @trac.Trac with fn update_ticket(
     action?,
     fields?=fields.map(wire_fields),
     ts?,
+    notify?,
   )
 }
 

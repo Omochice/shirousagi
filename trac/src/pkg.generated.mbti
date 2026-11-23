@@ -9,9 +9,21 @@ import {
 // Values
 pub async fn api_version(Trac) -> @json.Json raise TracError
 
+pub fn binary(BytesView) -> @json.Json
+
+pub fn bytes_of(@json.Json) -> Bytes?
+
 pub async fn call(Trac, String, Array[@json.Json]) -> @json.Json raise TracError
 
 pub fn datetime(String) -> @json.Json
+
+pub async fn method_help(Trac, String) -> String raise TracError
+
+pub async fn method_signature(Trac, String) -> Array[String] raise TracError
+
+pub async fn methods(Trac) -> Array[String] raise TracError
+
+pub async fn multicall(Trac, Array[(String, Array[@json.Json])]) -> Array[Result[@json.Json, TracError]] raise TracError
 
 pub fn new(endpoint~ : String, username~ : String, password~ : String) -> Trac raise TracError
 
@@ -33,6 +45,12 @@ pub fn TracError::to_string(Self) -> String
 pub impl Show for TracError
 
 // Types and methods
+pub(all) enum Moment {
+  At(String)
+  Unset
+}
+pub fn Moment::to_wire(Self) -> @json.Json
+
 pub struct Trac {
   // private fields
 }

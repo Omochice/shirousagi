@@ -50,3 +50,23 @@ async test "a project URL without TracXMLRPC behind it is a decode failure" {
     _ => fail("a missing RPC handler answered")
   }
 }
+
+///|
+async test "a multicall answers each call's result or fault in order" {
+  let outcomes = @livetest.admin()
+    |> @trac.multicall([
+      ("ticket.priority.getAll", []),
+      ("ticket.get", [99999]),
+      ("system.getAPIVersion", []),
+    ])
+  guard outcomes
+    is [
+      Ok(Array(priorities)),
+      Err(Fault(code=404, message~)),
+      Ok(Array([_, _, _])),
+    ] else {
+    fail("the outcomes were not answered per call")
+  }
+  assert_true(priorities.contains(Json("major")))
+  assert_true(message.contains("99999"), msg=message)
+}

@@ -4,6 +4,8 @@ priv enum WikiAction {
   Get(String, Int32?)
   Info(String, Int32?)
   RecentChanges(String)
+  Html(String, Int32?)
+  Render(String)
   Put(String, text~ : String, comment~ : String?)
   Delete(String, Int32?)
 }
@@ -42,6 +44,10 @@ fn wiki_input(mode : Mode) -> @schema.Schema[WikiAction] {
       "The whole new content of the page in TracWiki markup; it replaces the current text.",
     ),
   )
+  let markup = @schema.required(
+    "text",
+    @schema.string().describe("TracWiki markup to render; nothing is stored."),
+  )
   let comment = @schema.optional(
     "comment",
     @schema.string().describe("Change comment shown in the page history."),
@@ -64,6 +70,18 @@ fn wiki_input(mode : Mode) -> @schema.Schema[WikiAction] {
       "recent_changes",
       @schema.record([since.as_member()], v => {
         WikiAction::RecentChanges(v.get(since))
+      }),
+    ),
+    (
+      "html",
+      @schema.record([name.as_member(), version.as_member()], v => {
+        WikiAction::Html(v.get(name), v.get(version))
+      }),
+    ),
+    (
+      "render",
+      @schema.record([markup.as_member()], v => {
+        WikiAction::Render(v.get(markup))
       }),
     ),
   ]
@@ -92,6 +110,7 @@ fn wiki_description(mode : Mode) -> String {
   let reading = [
     "`list` answers every page name; `get` answers a page's TracWiki text and `info` its version, author, `lastModified` and comment.",
     "`recent_changes` answers the latest version of every page changed since a datetime.",
+    "`html` answers a page rendered as an HTML document, as Trac shows it with macros expanded; `render` answers TracWiki markup rendered as an HTML fragment without storing it.",
   ]
   let lines = match mode {
     Readonly => reading
@@ -123,6 +142,9 @@ pub fn wiki_tool(port : &WikiPort, mode : Mode) -> @mcp.Tool {
         Info(name, version) =>
           respond(() => port.wiki_page_info(name, version?))
         RecentChanges(since) => respond(() => port.recent_wiki_changes(since))
+        Html(name, version) =>
+          respond(() => port.wiki_page_html(name, version?))
+        Render(text) => respond(() => port.render_wiki(text))
         Put(name, text~, comment~) =>
           respond_ok(() => port.put_wiki_page(name, text~, comment?))
         Delete(name, version) =>

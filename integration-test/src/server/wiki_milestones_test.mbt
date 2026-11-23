@@ -129,3 +129,40 @@ async test "the readonly server refuses a write as an unknown action" {
     msg=called.payload.stringify(),
   )
 }
+
+///|
+async test "trac_wiki renders a page and markup as HTML" {
+  let server = full()
+  let name = @livetest.unique("Shirousagi/Rendered")
+  ignore(
+    succeed(server, "trac_wiki", {
+      "put": {
+        "name": Json(name),
+        "text": "= Rendered\nSee [wiki:WikiStart].\n",
+      },
+    }),
+  )
+  defer @livetest.cleanup(() => {
+    ignore(succeed(server, "trac_wiki", { "delete": { "name": Json(name) } }))
+  })
+  for version in [Json::null(), Json(1)] {
+    let arguments : Map[String, Json] = { "name": Json(name) }
+    if version is Number(_, ..) {
+      arguments["version"] = version
+    }
+    guard succeed(server, "trac_wiki", { "html": Json::object(arguments) })
+      is String(html) else {
+      fail("html did not answer text")
+    }
+    assert_true(html.contains("Rendered</h1>"), msg=html)
+    assert_true(html.contains("/wiki/WikiStart"), msg=html)
+  }
+  guard succeed(server, "trac_wiki", { "render": { "text": "= hi" } })
+    is String(fragment) else {
+    fail("render did not answer text")
+  }
+  assert_true(
+    fragment.contains("<h1") && fragment.contains("hi</h1>"),
+    msg=fragment,
+  )
+}

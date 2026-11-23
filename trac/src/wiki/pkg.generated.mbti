@@ -11,6 +11,8 @@ pub async fn delete(@trac.Trac, String, version? : Int32) -> Unit raise @trac.Tr
 
 pub async fn get(@trac.Trac, String, version? : Int32) -> String raise @trac.TracError
 
+pub async fn html(@trac.Trac, String, version? : Int32) -> String raise @trac.TracError
+
 pub async fn info(@trac.Trac, String, version? : Int32) -> @json.Json raise @trac.TracError
 
 pub async fn names(@trac.Trac) -> Array[String] raise @trac.TracError
@@ -18,6 +20,10 @@ pub async fn names(@trac.Trac) -> Array[String] raise @trac.TracError
 pub async fn put(@trac.Trac, String, String, comment? : String) -> Unit raise @trac.TracError
 
 pub async fn recent_changes(@trac.Trac, String) -> @json.Json raise @trac.TracError
+
+pub async fn render(@trac.Trac, String) -> String raise @trac.TracError
+
+pub async fn rpc_version(@trac.Trac) -> Int32 raise @trac.TracError
 
 // Errors
 

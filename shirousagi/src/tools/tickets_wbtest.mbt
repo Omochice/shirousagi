@@ -3,12 +3,13 @@ struct FakeTickets {
   calls : Array[String]
   created : Array[(String, String, Map[String, String])]
   updated : Array[(Int32, String?, String?, Map[String, String]?, String?)]
+  notified : Array[Bool?]
   failure : @trac.TracError?
 }
 
 ///|
 fn FakeTickets::new(failure? : @trac.TracError) -> FakeTickets {
-  { calls: [], created: [], updated: [], failure, }
+  { calls: [], created: [], updated: [], notified: [], failure, }
 }
 
 ///|
@@ -72,14 +73,22 @@ impl TicketPort for FakeTickets with fn ticket_fields(self) {
 }
 
 ///|
+impl TicketPort for FakeTickets with fn recent_ticket_changes(self, since) {
+  self.record("recent_changes \{since}")
+  [7]
+}
+
+///|
 impl TicketPort for FakeTickets with fn create_ticket(
   self,
   summary~,
   description~,
   fields~,
+  notify?,
 ) {
   self.record("create")
   self.created.push((summary, description, fields))
+  self.notified.push(notify)
   9
 }
 
@@ -91,9 +100,11 @@ impl TicketPort for FakeTickets with fn update_ticket(
   action?,
   fields?,
   ts?,
+  notify?,
 ) {
   self.record("update \{id}")
   self.updated.push((id, comment, action, fields, ts))
+  self.notified.push(notify)
   fake_ticket(id)
 }
 
@@ -127,8 +138,13 @@ async test "the read actions reach their port methods and answer their JSON" {
   assert_true(actions.text.contains("\"name\":\"leave\""))
   let fields = call_tool(tools, "trac_tickets", { "fields": {} })
   assert_eq(fields.text, "[{\"name\":\"summary\",\"type\":\"text\"}]")
+  let recent = call_tool(tools, "trac_tickets", {
+    "recent_changes": { "since": "2026-11-21T09:00:00+09:00" },
+  })
+  assert_eq(recent.text, "[7]")
   assert_eq(fake.calls, [
     "query status!=closed&max=0", "get 3", "changelog 3", "actions 3", "fields",
+    "recent_changes 2026-11-21T09:00:00+09:00",
   ])
 }
 
@@ -242,6 +258,10 @@ async test "tickets: validation reports the exact message for each rule" {
       "invalid arguments: update.action: must not be blank",
     ),
     ({ "fields": { "id": 1 } }, "invalid arguments: fields.id: unknown field"),
+    (
+      { "recent_changes": { "since": "yesterday" } },
+      "invalid arguments: recent_changes.since: must be an ISO 8601 datetime such as 2026-11-21T09:00:00Z",
+    ),
   ]
   for entry in cases {
     let called = call_tool(tools, "trac_tickets", entry.0)
@@ -266,7 +286,7 @@ async test "tickets: readonly mode makes the write actions unknown" {
     )
     assert_eq(
       called.text,
-      "{\"status\":0,\"errors\":[\"invalid arguments: unknown action `\{action}`, one of `query`, `get`, `changelog`, `actions` and `fields`\"]}",
+      "{\"status\":0,\"errors\":[\"invalid arguments: unknown action `\{action}`, one of `query`, `get`, `changelog`, `actions`, `fields` and `recent_changes`\"]}",
     )
   }
   assert_eq(fake.calls, [])
@@ -283,7 +303,7 @@ async test "tickets: the readonly schema lacks every write action" {
     fail("no keyed schema in \{listed.stringify()}")
   }
   assert_eq(actions.keys().collect(), [
-    "query", "get", "changelog", "actions", "fields",
+    "query", "get", "changelog", "actions", "fields", "recent_changes",
   ])
   let full = list_tools(tickets_tools(FakeTickets::new()))
   guard full
@@ -294,7 +314,8 @@ async test "tickets: the readonly schema lacks every write action" {
     fail("no keyed schema in \{full.stringify()}")
   }
   assert_eq(actions.keys().collect(), [
-    "query", "get", "changelog", "actions", "fields", "create", "update", "delete",
+    "query", "get", "changelog", "actions", "fields", "recent_changes", "create",
+    "update", "delete",
   ])
 }
 
@@ -339,4 +360,34 @@ async test "tickets: a rejected login keeps its HTTP status" {
     called.text,
     "{\"status\":401,\"errors\":[\"HTTP 401: the username or password was rejected\"]}",
   )
+}
+
+///|
+async test "notify reaches the port only when it is given" {
+  let fake = FakeTickets::new()
+  let tools = tickets_tools(fake)
+  let requests : Array[Json] = [
+    { "create": { "summary": "s", "description": "", "notify": true } },
+    { "create": { "summary": "s", "description": "" } },
+    { "update": { "id": 3, "notify": false } },
+    { "update": { "id": 3 } },
+  ]
+  for arguments in requests {
+    assert_eq(call_tool(tools, "trac_tickets", arguments).is_error, false)
+  }
+  assert_eq(fake.notified, [Some(true), None, Some(false), None])
+}
+
+///|
+async test "tickets: notify must be a boolean" {
+  let fake = FakeTickets::new()
+  let called = call_tool(tickets_tools(fake), "trac_tickets", {
+    "update": { "id": 3, "notify": "yes" },
+  })
+  assert_eq(called.is_error, true)
+  assert_true(
+    called.text.contains("invalid arguments: update.notify: expected a boolean"),
+    msg=called.text,
+  )
+  assert_eq(fake.calls, [])
 }

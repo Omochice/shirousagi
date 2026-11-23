@@ -2,6 +2,7 @@ import {
   "moonbitlang/async",
   "omochice/integration-test/livetest",
   "omochice/trac",
+  "omochice/trac/attachments",
   "omochice/trac/milestones",
   "omochice/trac/search",
   "omochice/trac/tickets",

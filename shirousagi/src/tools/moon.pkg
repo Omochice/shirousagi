@@ -1,11 +1,16 @@
 import {
+  "moonbitlang/core/encoding/base64",
   "Omochice/mcp",
   "Omochice/schema",
   "omochice/shirousagi/build",
   "omochice/trac",
+  "omochice/trac/attachments",
+  "omochice/trac/components",
+  "omochice/trac/enums",
   "omochice/trac/milestones",
   "omochice/trac/search",
   "omochice/trac/tickets",
+  "omochice/trac/versions",
   "omochice/trac/wiki",
 }
 

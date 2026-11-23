@@ -22,16 +22,11 @@ pub async fn update(@trac.Trac, String, Changes) -> Unit raise @trac.TracError
 // Types and methods
 pub(all) struct Changes {
   name : String?
-  due : Moment?
-  completed : Moment?
+  due : @trac.Moment?
+  completed : @trac.Moment?
   description : String?
 }
-pub fn Changes::new(name? : String, due? : Moment, completed? : Moment, description? : String) -> Self
-
-pub(all) enum Moment {
-  At(String)
-  Unset
-}
+pub fn Changes::new(name? : String, due? : @trac.Moment, completed? : @trac.Moment, description? : String) -> Self
 
 // Type aliases
 
