@@ -23,7 +23,7 @@ pub async fn get(
 ) -> String raise @trac.TracError {
   let (rpc_method, params) = versioned("wiki.getPage", name, version)
   let json = trac |> @trac.call(rpc_method, params)
-  guard json is String(text) else { raise @trac.unexpected("wiki.getPage") }
+  guard json is String(text) else { raise @trac.unexpected(rpc_method) }
   text
 }
 
