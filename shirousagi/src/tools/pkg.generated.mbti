@@ -1,0 +1,77 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "omochice/shirousagi/tools"
+
+import {
+  "Omochice/mcp",
+  "Omochice/schema",
+  "moonbitlang/core/json",
+  "omochice/shirousagi/build",
+  "omochice/trac",
+  "omochice/trac/milestones",
+}
+
+// Values
+pub fn milestones_tool(&MilestonePort, Mode) -> @mcp.Tool
+
+pub fn on_invalid(@schema.SchemaError) -> @mcp.ToolResult
+
+pub fn search_tool(&SearchPort) -> @mcp.Tool
+
+pub fn server_info_tool(&ServerInfoPort, build? : @build.BuildInfo?) -> @mcp.Tool
+
+pub fn tickets_tool(&TicketPort, Mode) -> @mcp.Tool
+
+pub fn wiki_tool(&WikiPort, Mode) -> @mcp.Tool
+
+// Errors
+
+// Types and methods
+pub(all) enum Mode {
+  Full
+  Readonly
+}
+
+// Type aliases
+
+// Traits
+pub(open) trait MilestonePort {
+  async fn milestone_names(Self) -> Array[String] raise @trac.TracError
+  async fn get_milestone(Self, String) -> @json.Json raise @trac.TracError
+  async fn create_milestone(Self, String, @milestones.Changes) -> Unit raise @trac.TracError
+  async fn update_milestone(Self, String, @milestones.Changes) -> Unit raise @trac.TracError
+  async fn delete_milestone(Self, String) -> Unit raise @trac.TracError
+}
+pub impl MilestonePort for @trac.Trac
+
+pub(open) trait SearchPort {
+  async fn search_filters(Self) -> Array[@json.Json] raise @trac.TracError
+  async fn search(Self, String, filters? : Array[String]) -> Array[@json.Json] raise @trac.TracError
+}
+pub impl SearchPort for @trac.Trac
+
+pub(open) trait ServerInfoPort {
+  async fn trac_api_version(Self) -> @json.Json raise @trac.TracError
+}
+pub impl ServerInfoPort for @trac.Trac
+
+pub(open) trait TicketPort {
+  async fn query_tickets(Self, String) -> Array[Int32] raise @trac.TracError
+  async fn get_ticket(Self, Int32) -> @json.Json raise @trac.TracError
+  async fn ticket_changelog(Self, Int32) -> Array[@json.Json] raise @trac.TracError
+  async fn ticket_actions(Self, Int32) -> Array[@json.Json] raise @trac.TracError
+  async fn ticket_fields(Self) -> @json.Json raise @trac.TracError
+  async fn create_ticket(Self, summary~ : String, description~ : String, fields~ : Map[String, String]) -> Int32 raise @trac.TracError
+  async fn update_ticket(Self, Int32, comment? : String, action? : String, fields? : Map[String, String], ts? : String) -> @json.Json raise @trac.TracError
+  async fn delete_ticket(Self, Int32) -> Unit raise @trac.TracError
+}
+pub impl TicketPort for @trac.Trac
+
+pub(open) trait WikiPort {
+  async fn wiki_page_names(Self) -> Array[String] raise @trac.TracError
+  async fn get_wiki_page(Self, String, version? : Int32) -> String raise @trac.TracError
+  async fn wiki_page_info(Self, String, version? : Int32) -> @json.Json raise @trac.TracError
+  async fn recent_wiki_changes(Self, String) -> @json.Json raise @trac.TracError
+  async fn put_wiki_page(Self, String, text~ : String, comment? : String) -> Unit raise @trac.TracError
+  async fn delete_wiki_page(Self, String, version? : Int32) -> Unit raise @trac.TracError
+}
+pub impl WikiPort for @trac.Trac

@@ -1,0 +1,18 @@
+import {
+  "Omochice/mcp",
+  "Omochice/schema",
+  "omochice/shirousagi/build",
+  "omochice/trac",
+  "omochice/trac/milestones",
+  "omochice/trac/search",
+  "omochice/trac/tickets",
+  "omochice/trac/wiki",
+}
+
+import {
+  "moonbitlang/async",
+  "moonbitlang/async/io",
+  "moonbitlang/core/json",
+} for "wbtest"
+
+supported_targets = "+native"
