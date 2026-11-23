@@ -33,9 +33,9 @@ async fn exchange(server : @mcp.Server, requests : Array[Json]) -> Array[Json] {
 }
 
 ///|
-/// Each tool's actions as `tools/list` advertises them, for `read_only`.
+/// The tools as `tools/list` advertises them, for `read_only`.
 /// The client is never asked to call Trac, so its endpoint is never dialed.
-async fn advertised_actions(read_only : Bool) -> Map[String, Array[String]] {
+async fn advertised_tools(read_only : Bool) -> Array[Json] {
   let trac = @trac.new(
     endpoint="http://localhost:8000/unused",
     username="alice",
@@ -47,8 +47,14 @@ async fn advertised_actions(read_only : Bool) -> Map[String, Array[String]] {
   guard responses[1] is { "result": { "tools": Array(tools), .. }, .. } else {
     fail("no tools/list result")
   }
+  tools
+}
+
+///|
+/// Each tool's actions as `tools/list` advertises them, for `read_only`.
+async fn advertised_actions(read_only : Bool) -> Map[String, Array[String]] {
   let advertised = Map([])
-  for tool in tools {
+  for tool in advertised_tools(read_only) {
     guard tool
       is {
         "name": String(name),
@@ -133,4 +139,34 @@ async test "readonly mode lists every tool without its write actions" {
       #|}
     ),
   )
+}
+
+///|
+/// Every text under a `description` key of `json`, at any depth.
+fn descriptions(json : Json) -> Array[String] {
+  let found : Array[String] = []
+  match json {
+    Object(fields) =>
+      for key, value in fields {
+        match (key, value) {
+          ("description", String(text)) => found.push(text)
+          _ => found.append(descriptions(value))
+        }
+      }
+    Array(items) =>
+      for item in items {
+        found.append(descriptions(item))
+      }
+    _ => ()
+  }
+  found
+}
+
+///|
+async test "every datetime the tools describe with an example gives the same one" {
+  let odd = descriptions(Json::array(advertised_tools(false))).filter(text => {
+    text.contains("ISO 8601 datetime such as") &&
+    !text.contains("such as `2026-11-21T09:00:00Z`")
+  })
+  @debug.debug_inspect(odd, content="[]")
 }

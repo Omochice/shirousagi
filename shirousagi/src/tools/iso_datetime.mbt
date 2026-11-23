@@ -65,11 +65,19 @@ fn is_iso_datetime(text : String) -> Bool {
 }
 
 ///|
+/// The datetime every text shows a model as an example of what `iso_datetime` accepts.
+let iso_datetime_example : String = "2026-11-21T09:00:00Z"
+
+///|
+/// What the description of an `iso_datetime` value tells a model about the accepted form.
+let iso_datetime_hint : String = "ISO 8601 datetime such as `\{iso_datetime_example}`; text without an offset is read as UTC."
+
+///|
 /// ISO 8601 datetime text, which the SDK hands to Trac as a datetime value.
 fn iso_datetime() -> @schema.Schema[String] {
   @schema.string().refine(
     is_iso_datetime,
-    "must be an ISO 8601 datetime such as 2026-11-21T09:00:00Z",
+    "must be an ISO 8601 datetime such as \{iso_datetime_example}",
     keywords=[
       (
         "pattern", "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$",
