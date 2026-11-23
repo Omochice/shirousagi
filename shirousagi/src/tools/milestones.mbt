@@ -8,44 +8,19 @@ priv enum MilestoneAction {
 }
 
 ///|
-fn milestone_name(description : String) -> @schema.Schema[String] {
-  @schema.not_blank().describe(description)
-}
-
-///|
-/// Maps `null` to `Unset` so that an update keeps "leave alone", "clear" and
-/// "set" apart.
-fn clearable_moment(description : String) -> @schema.Schema[@trac.Moment] {
-  @schema.nullable(iso_datetime())
-  .map(value => {
-    match value {
-      Some(iso) => @trac.Moment::At(iso)
-      None => Unset
-    }
-  })
-  .describe(description)
-}
-
-///|
 fn milestones_input(mode : Mode) -> @schema.Schema[MilestoneAction] {
   let name = @schema.required(
     "name",
-    milestone_name("Milestone name, as in the URL path `/milestone/<name>`."),
+    resource_name("Milestone name, as in the URL path `/milestone/<name>`."),
   )
   let new_name = @schema.optional(
     "new_name",
-    milestone_name("New name for the milestone."),
+    resource_name("New name for the milestone."),
   )
   let due_text = "When the milestone is due, as an ISO 8601 datetime such as `2026-12-31T00:00:00Z`; text without an offset is read as UTC."
   let completed_text = "When the milestone was completed, as an ISO 8601 datetime; setting it marks the milestone completed."
-  let due = @schema.optional(
-    "due",
-    iso_datetime().map(iso => @trac.Moment::At(iso)).describe(due_text),
-  )
-  let completed = @schema.optional(
-    "completed",
-    iso_datetime().map(iso => @trac.Moment::At(iso)).describe(completed_text),
-  )
+  let due = @schema.optional("due", moment(due_text))
+  let completed = @schema.optional("completed", moment(completed_text))
   let update_due = @schema.optional(
     "due",
     clearable_moment("\{due_text} `null` clears the due date."),

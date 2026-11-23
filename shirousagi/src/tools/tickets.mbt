@@ -80,12 +80,7 @@ fn tickets_input(mode : Mode) -> @schema.Schema[TicketAction] {
     "fields",
     ticket_fields_schema(["action", "_ts"], "pass them as `action` and `ts`"),
   )
-  let since = @schema.required(
-    "since",
-    iso_datetime().describe(
-      "ISO 8601 datetime such as `2026-11-21T09:00:00Z`; text without an offset is read as UTC.",
-    ),
-  )
+  let since = since()
   let ts = @schema.optional(
     "ts",
     @schema.not_blank().describe(
