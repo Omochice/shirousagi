@@ -20,6 +20,10 @@
       url = "github:moonbit-community/moonbit-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    mooncakes-index = {
+      url = "git+https://mooncakes.io/git/index";
+      flake = false;
+    };
   };
 
   outputs =
@@ -31,6 +35,7 @@
       nur-packages,
       git-hooks,
       moonbit-overlay,
+      mooncakes-index,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -44,6 +49,69 @@
         };
         # moonbit-overlay publishes toolchains only for aarch64-darwin and x86_64-linux.
         moonbitToolchain = pkgs.lib.optional (pkgs.moonbit-bin ? latest) pkgs.moonbit-bin.latest;
+        moonManifests = map builtins.readFile [
+          ./integration-test/moon.mod
+          ./shirousagi/moon.mod
+          ./trac/moon.mod
+        ];
+        matchesIn = pattern: text: builtins.filter builtins.isList (builtins.split pattern text);
+        workspaceModules = pkgs.lib.concatMap (
+          manifest: map builtins.head (matchesIn ''name = "([^"]+)"'' manifest)
+        ) moonManifests;
+        # A dependency that only another dependency declares is not found this way and has to be declared in a manifest.
+        registryModules = pkgs.lib.pipe moonManifests [
+          (pkgs.lib.concatMap (matchesIn ''"([^"@]+)@([^"]+)"''))
+          pkgs.lib.unique
+          (builtins.filter (module: !(builtins.elem (builtins.head module) workspaceModules)))
+        ];
+        mooncakesArchive =
+          module:
+          let
+            name = builtins.elemAt module 0;
+            version = builtins.elemAt module 1;
+            records = pkgs.lib.pipe "${mooncakes-index}/user/${name}.index" [
+              builtins.readFile
+              (pkgs.lib.splitString "\n")
+              (builtins.filter (line: line != ""))
+              (map builtins.fromJSON)
+            ];
+            record =
+              pkgs.lib.findFirst (record: record.version == version)
+                (throw "${name}@${version} is not in the pinned mooncakes index; run `nix flake update mooncakes-index`")
+                records;
+          in
+          {
+            inherit name;
+            archive = pkgs.fetchurl {
+              url = "https://download.mooncakes.io/user/${name}/${version}.zip";
+              sha256 = record.checksum;
+            };
+          };
+        # `task check` is not reused: it syncs dependencies from the registry, which a build cannot reach.
+        moonCheck =
+          pkgs.runCommand "moon-check"
+            {
+              nativeBuildInputs = [ pkgs.unzip ] ++ moonbitToolchain;
+              src = self;
+            }
+            ''
+              cp -r $src source
+              chmod -R u+w source
+              cd source
+              export MOON_HOME=$TMPDIR/moon-home
+              mkdir -p $MOON_HOME/registry
+              # Even a frozen check resolves the dependency graph through the index.
+              ln -s ${mooncakes-index} $MOON_HOME/registry/index
+              for workspace in . integration-test; do
+                ${pkgs.lib.concatMapStrings (
+                  module:
+                  "mkdir -p $workspace/.mooncakes/${module.name}\nunzip -q ${module.archive} -d $workspace/.mooncakes/${module.name}\n"
+                ) (map mooncakesArchive registryModules)}
+              done
+              moon check --deny-warn --frozen
+              (cd integration-test && moon check --deny-warn --frozen)
+              touch $out
+            '';
         treefmt = treefmt-nix.lib.evalModule pkgs (
           { ... }:
           let
@@ -199,6 +267,7 @@
                 touch $out
               '';
           formatting = treefmt.config.build.check self;
+          moon-check = moonCheck;
           pre-commit = pre-commit-check;
           renovate =
             pkgs.runCommand "validate-renovate-config"
