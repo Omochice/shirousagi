@@ -144,3 +144,55 @@ test "a list holding anything but text is an unknown shape" {
     }
   }
 }
+
+///|
+test "a reply with a null error holds its result untouched" {
+  let reply : Json = {
+    "result": { "__jsonclass__": ["datetime", "2026-11-21T05:24:44"] },
+    "error": Json::null(),
+  }
+  guard outcome_of(reply) is Some(Ok(result)) else {
+    fail("the result was not found")
+  }
+  inspect(
+    result.stringify(),
+    content=(
+      #|{"__jsonclass__":["datetime","2026-11-21T05:24:44"]}
+    ),
+  )
+}
+
+///|
+test "a reply with an error object holds a fault with its code and message" {
+  let reply : Json = {
+    "result": Json::null(),
+    "error": { "name": "JSONRPCError", "code": 404, "message": "gone" },
+  }
+  guard outcome_of(reply) is Some(Err(Fault(code=404, message~))) else {
+    fail("the fault was not found")
+  }
+  inspect(message, content="gone")
+}
+
+///|
+test "a reply with neither a null error nor a complete error object holds no outcome" {
+  for
+    reply in [
+      Json::object({ "result": 1 }),
+      { "error": { "code": 404 }, "result": 1 },
+      { "error": "oops", "result": 1 },
+      Json::array([]),
+    ] {
+    assert_true(outcome_of(reply) is None, msg=reply.stringify())
+  }
+}
+
+///|
+test "an envelope carries the id it is given" {
+  inspect(
+    envelope("ticket.get", [1], id=Json("0")).stringify(),
+    content=(
+      #|{"method":"ticket.get","params":[1],"id":"0"}
+    ),
+  )
+}

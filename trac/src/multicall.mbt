@@ -31,11 +31,7 @@ pub async fn multicall(
 ) -> Array[Result[Json, TracError]] raise TracError {
   let batch : Array[Json] = calls.mapi((index, entry) => {
     let (rpc_method, params) = entry
-    {
-      "method": Json(rpc_method),
-      "params": Json::array(params),
-      "id": Json(index.to_string()),
-    }
+    envelope(rpc_method, params, id=Json(index.to_string()))
   })
   outcomes_of(calls.length(), trac |> call("system.multicall", batch))
 }
@@ -54,13 +50,9 @@ fn outcomes_of(
     guard entry is { "id": String(id), .. } && id == index.to_string() else {
       raise unexpected("system.multicall")
     }
-    match entry {
-      { "error": Null, "result": result, .. } => Ok(result)
-      {
-        "error": { "code": Number(code, ..), "message": String(message), .. },
-        ..
-      } => Err(Fault(code=code.to_int(), message~))
-      _ => raise unexpected("system.multicall")
+    guard outcome_of(entry) is Some(outcome) else {
+      raise unexpected("system.multicall")
     }
+    outcome
   })
 }
