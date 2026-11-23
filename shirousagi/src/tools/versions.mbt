@@ -8,27 +8,19 @@ priv enum VersionAction {
 }
 
 ///|
-fn version_name(description : String) -> @schema.Schema[String] {
-  @schema.not_blank().describe(description)
-}
-
-///|
 fn versions_input(mode : Mode) -> @schema.Schema[VersionAction] {
   let name = @schema.required(
     "name",
-    version_name(
+    resource_name(
       "Version name, as the ticket field `version` holds it, such as `1.0`.",
     ),
   )
   let new_name = @schema.optional(
     "new_name",
-    version_name("New name for the version."),
+    resource_name("New name for the version."),
   )
   let time_text = "When the version was or will be released, as an ISO 8601 datetime such as `2026-12-31T00:00:00Z`; text without an offset is read as UTC."
-  let time = @schema.optional(
-    "time",
-    iso_datetime().map(iso => @trac.Moment::At(iso)).describe(time_text),
-  )
+  let time = @schema.optional("time", moment(time_text))
   let update_time = @schema.optional(
     "time",
     clearable_moment("\{time_text} `null` clears it."),

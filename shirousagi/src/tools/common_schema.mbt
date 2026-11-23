@@ -39,3 +39,27 @@ fn string_map() -> @schema.Schema[Map[String, String]] {
     },
   }
 }
+
+///|
+fn resource_name(description : String) -> @schema.Schema[String] {
+  @schema.not_blank().describe(description)
+}
+
+///|
+fn moment(description : String) -> @schema.Schema[@trac.Moment] {
+  iso_datetime().map(iso => @trac.Moment::At(iso)).describe(description)
+}
+
+///|
+/// Maps `null` to `Unset` so that an update keeps "leave alone", "clear" and
+/// "set" apart.
+fn clearable_moment(description : String) -> @schema.Schema[@trac.Moment] {
+  @schema.nullable(iso_datetime())
+  .map(value => {
+    match value {
+      Some(iso) => @trac.Moment::At(iso)
+      None => Unset
+    }
+  })
+  .describe(description)
+}

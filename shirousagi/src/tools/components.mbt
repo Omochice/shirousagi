@@ -8,21 +8,16 @@ priv enum ComponentAction {
 }
 
 ///|
-fn component_name(description : String) -> @schema.Schema[String] {
-  @schema.not_blank().describe(description)
-}
-
-///|
 fn components_input(mode : Mode) -> @schema.Schema[ComponentAction] {
   let name = @schema.required(
     "name",
-    component_name(
+    resource_name(
       "Component name, as the ticket field `component` holds it, such as `component1`.",
     ),
   )
   let new_name = @schema.optional(
     "new_name",
-    component_name("New name for the component."),
+    resource_name("New name for the component."),
   )
   let owner = @schema.optional(
     "owner",
