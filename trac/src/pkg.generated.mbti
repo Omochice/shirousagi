@@ -31,6 +31,8 @@ pub fn strings_of(String, @json.Json) -> Array[String] raise TracError
 
 pub fn unexpected(String) -> TracError
 
+pub fn unset_dates_as_null(String, @json.Json, Array[String]) -> @json.Json raise TracError
+
 // Errors
 #derive(@debug.Debug, @json.ToJson)
 pub(all) suberror TracError {

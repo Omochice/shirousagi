@@ -54,18 +54,7 @@ pub async fn get(
   name : String,
 ) -> Json raise @trac.TracError {
   let json = trac |> @trac.call("ticket.milestone.get", [Json(name)])
-  guard json is Object(fields) else {
-    raise @trac.unexpected("ticket.milestone.get")
-  }
-  let milestone : Map[String, Json] = Map([])
-  for key, value in fields {
-    // Trac answers 0 for an unset date, which a reader would take for the epoch.
-    milestone[key] = match (key, value) {
-      ("due" | "completed", Number(0, ..)) => Json::null()
-      _ => value
-    }
-  }
-  Json::object(milestone)
+  @trac.unset_dates_as_null("ticket.milestone.get", json, ["due", "completed"])
 }
 
 ///|
