@@ -2,13 +2,7 @@
 /// The names of every wiki page.
 pub async fn names(trac : @trac.Trac) -> Array[String] raise @trac.TracError {
   let json = trac |> @trac.call("wiki.getAllPages", [])
-  guard json is Array(names) else { raise @trac.unexpected("wiki.getAllPages") }
-  names.map(name => {
-    guard name is String(name) else {
-      raise @trac.unexpected("wiki.getAllPages")
-    }
-    name
-  })
+  @trac.strings_of("wiki.getAllPages", json)
 }
 
 ///|

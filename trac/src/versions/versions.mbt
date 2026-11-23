@@ -40,15 +40,7 @@ fn Changes::to_wire(self : Changes) -> Json {
 /// `TracError` as `@trac.call` does.
 pub async fn names(trac : @trac.Trac) -> Array[String] raise @trac.TracError {
   let json = trac |> @trac.call("ticket.version.getAll", [])
-  guard json is Array(names) else {
-    raise @trac.unexpected("ticket.version.getAll")
-  }
-  names.map(name => {
-    guard name is String(name) else {
-      raise @trac.unexpected("ticket.version.getAll")
-    }
-    name
-  })
+  @trac.strings_of("ticket.version.getAll", json)
 }
 
 ///|

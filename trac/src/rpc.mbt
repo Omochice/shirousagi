@@ -82,3 +82,19 @@ pub fn unexpected(rpc_method : String) -> TracError {
     message="Trac answered `\{rpc_method}` in a shape this client does not know",
   )
 }
+
+///|
+/// The strings of a result that `rpc_method` answers as a list of text, in Trac's order.
+///
+/// # Raises
+/// `Decode` as `unexpected` reports it when `json` is not an array of strings.
+pub fn strings_of(
+  rpc_method : String,
+  json : Json,
+) -> Array[String] raise TracError {
+  guard json is Array(items) else { raise unexpected(rpc_method) }
+  items.map(item => {
+    guard item is String(text) else { raise unexpected(rpc_method) }
+    text
+  })
+}
