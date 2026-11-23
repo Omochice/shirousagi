@@ -137,6 +137,22 @@
               pass_filenames = false;
               stages = [ "pre-push" ];
             };
+            # Not on the pre-commit stage: `checks.pre-commit` runs that stage inside a nix build, which cannot reach the registry.
+            moon-check = {
+              enable = moonbitToolchain != [ ];
+              name = "moon check";
+              entry = pkgs.lib.getExe (
+                pkgs.writeShellApplication {
+                  name = "moon-check";
+                  runtimeInputs = [ pkgs.go-task ] ++ moonbitToolchain;
+                  text = ''
+                    task check
+                  '';
+                }
+              );
+              pass_filenames = false;
+              stages = [ "pre-push" ];
+            };
             treefmt = {
               enable = true;
               packageOverrides.treefmt = treefmt.config.build.wrapper;
