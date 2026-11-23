@@ -104,14 +104,14 @@ test "on_invalid prefixes each message" {
 ///|
 test "describe_crud_tool drops the write verbs in readonly mode" {
   inspect(
-    describe_crud_tool("tickets", Readonly),
+    describe_crud_tool("tickets", Readonly, lines=[]),
     content=(
       #|List and show Trac tickets.
       #|Pass exactly one key, the operation name, whose value is an object of that operation's arguments: `{"<operation>": {...}}`.
     ),
   )
   inspect(
-    describe_crud_tool("milestones", Full),
+    describe_crud_tool("milestones", Full, lines=[]),
     content=(
       #|Create, read, update, and delete Trac milestones.
       #|Pass exactly one key, the operation name, whose value is an object of that operation's arguments: `{"<operation>": {...}}`.
