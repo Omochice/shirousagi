@@ -22,7 +22,7 @@ fn describe_crud_tool(
   resource : String,
   mode : Mode,
   full_verbs~ : String = "Create, read, update, and delete",
-  lines~ : Array[String] = [],
+  lines~ : Array[String],
 ) -> String {
   let summary = match mode {
     Readonly => "List and show Trac \{resource}."

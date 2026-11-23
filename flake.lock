@@ -76,6 +76,22 @@
         "type": "github"
       }
     },
+    "mooncakes-index": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795444765,
+        "narHash": "sha256-D2oNDbYU/+5GlJ70yV3c8m6lQz2kjw9maj44/7QhWK0=",
+        "ref": "refs/heads/main",
+        "rev": "333a3a6f8a2725247dbb5cbe02776c97494f3474",
+        "revCount": 25734,
+        "type": "git",
+        "url": "https://mooncakes.io/git/index"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://mooncakes.io/git/index"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1795095985,
@@ -118,6 +134,7 @@
         "flake-utils": "flake-utils",
         "git-hooks": "git-hooks",
         "moonbit-overlay": "moonbit-overlay",
+        "mooncakes-index": "mooncakes-index",
         "nixpkgs": "nixpkgs",
         "nur-packages": "nur-packages",
         "treefmt-nix": "treefmt-nix_3"
