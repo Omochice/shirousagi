@@ -86,3 +86,32 @@ async test "login refuses a URL that is not a Trac project and stores nothing" {
   }
   assert_true(store.entries.is_empty())
 }
+
+///|
+async test "login refuses a user without XML_RPC, asks for the permission, and stores nothing" {
+  let store = empty_store()
+  let username = @livetest.outsider_username()
+  try
+    @cli.run_login(
+      @livetest.endpoint(),
+      username~,
+      store,
+      () => @livetest.outsider_password(),
+      @cli.check_login,
+    )
+  catch {
+    error => {
+      let message = error.to_string()
+      assert_true(message.contains(": Trac fault 403: "), msg=message)
+      assert_true(
+        message.has_suffix(
+          "\nAsk a Trac administrator to grant XML_RPC to \{username}.",
+        ),
+        msg=message,
+      )
+    }
+  } noraise {
+    _ => fail("a user without XML_RPC was stored")
+  }
+  assert_true(store.entries.is_empty())
+}
