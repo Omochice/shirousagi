@@ -55,6 +55,30 @@
         "type": "github"
       }
     },
+    "moon-nix": {
+      "inputs": {
+        "moonbit-overlay": [
+          "moonbit-overlay"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795491321,
+        "narHash": "sha256-FH9NkhmjF6acD9a4FU2W2vgeF7OlHRWEOaib2S9ZnbE=",
+        "owner": "Omochice",
+        "repo": "moon-nix",
+        "rev": "6ce548b46eaf5dc7e91021bed457ff88c4b90f2d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Omochice",
+        "ref": "fix-moon-compat",
+        "repo": "moon-nix",
+        "type": "github"
+      }
+    },
     "moonbit-overlay": {
       "inputs": {
         "nixpkgs": [
@@ -133,6 +157,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "git-hooks": "git-hooks",
+        "moon-nix": "moon-nix",
         "moonbit-overlay": "moonbit-overlay",
         "mooncakes-index": "mooncakes-index",
         "nixpkgs": "nixpkgs",
