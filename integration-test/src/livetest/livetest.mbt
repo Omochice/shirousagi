@@ -14,12 +14,24 @@ pub fn endpoint() -> String raise {
 }
 
 ///|
+/// The username of the test Trac's administrator, from `SHIROUSAGI_TEST_ADMIN_USER`.
+pub fn admin_username() -> String raise {
+  variable("SHIROUSAGI_TEST_ADMIN_USER")
+}
+
+///|
+/// The password of the test Trac's administrator, from `SHIROUSAGI_TEST_ADMIN_PASSWORD`.
+pub fn admin_password() -> String raise {
+  variable("SHIROUSAGI_TEST_ADMIN_PASSWORD")
+}
+
+///|
 /// A client for the test Trac acting as the administrator named by `SHIROUSAGI_TEST_ADMIN_USER`.
 pub fn admin() -> @trac.Trac raise {
   @trac.new(
     endpoint=endpoint(),
-    username=variable("SHIROUSAGI_TEST_ADMIN_USER"),
-    password=variable("SHIROUSAGI_TEST_ADMIN_PASSWORD"),
+    username=admin_username(),
+    password=admin_password(),
   )
 }
 
@@ -32,6 +44,18 @@ pub fn viewer() -> @trac.Trac raise {
     username=variable("SHIROUSAGI_TEST_VIEWER_USER"),
     password=variable("SHIROUSAGI_TEST_VIEWER_PASSWORD"),
   )
+}
+
+///|
+/// The username of a test Trac user who logs in but lacks `XML_RPC`, from `SHIROUSAGI_TEST_OUTSIDER_USER`.
+pub fn outsider_username() -> String raise {
+  variable("SHIROUSAGI_TEST_OUTSIDER_USER")
+}
+
+///|
+/// The password of the user `outsider_username` names, from `SHIROUSAGI_TEST_OUTSIDER_PASSWORD`.
+pub fn outsider_password() -> String raise {
+  variable("SHIROUSAGI_TEST_OUTSIDER_PASSWORD")
 }
 
 ///|

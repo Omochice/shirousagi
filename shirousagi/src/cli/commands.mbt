@@ -18,20 +18,22 @@ fn strip_line_ending(input : String) -> String {
 }
 
 ///|
-/// Stores `username` and the password read by `read_secret` for `endpoint`,
-/// and returns the account they were stored under.
+/// Stores `username` and the password read by `read_secret` for `endpoint`
+/// once `check` succeeds with a client logged in as them, and returns the
+/// account they were stored under.
 /// The username is checked before the password is read, so that a user is
 /// not asked for a password that cannot be stored.
 ///
 /// # Raises
 /// `Message` for an invalid endpoint, a username that is empty or that Trac
-/// cannot log in with, a password that cannot be read or is empty, or a
-/// failing store.
+/// cannot log in with, a password that cannot be read or is empty, a failing
+/// `check`, or a failing store.
 pub async fn run_login(
   endpoint : String,
   username~ : String,
   store : &KeyringPort,
   read_secret : async () -> String,
+  check : async (@trac.Trac) -> Unit raise @trac.TracError,
 ) -> String raise CliError {
   let account = canonicalize_endpoint(endpoint)
   if username.trim() == "" {
@@ -48,8 +50,31 @@ pub async fn run_login(
   if password == "" {
     raise Message("no password was provided")
   }
+  let trac = @trac.new(endpoint=account, username~, password~) catch {
+    error => raise Message("\{error}")
+  }
+  check(trac) catch {
+    error => {
+      let failure = "could not log in to \{account}: \{error}"
+      match login_hint(error, account~, username~) {
+        Some(hint) => raise Message("\{failure}\n\{hint}")
+        None => raise Message(failure)
+      }
+    }
+  }
   store.set(account~, secret=encode_secret(username~, password~))
   account
+}
+
+///|
+/// Succeeds when Trac accepts the login of `trac` for RPC.
+///
+/// # Raises
+/// `TracError` when Trac refuses the login or cannot be reached.
+pub async fn check_login(trac : @trac.Trac) -> Unit raise @trac.TracError {
+  // The API version reads nothing from the project, so a check through it
+  // refuses no user that holds `XML_RPC`.
+  ignore(@trac.api_version(trac))
 }
 
 ///|
@@ -124,5 +149,28 @@ pub async fn run_serve(
   }
   build_server(trac, read_only).serve_stdio() catch {
     error => raise Message("\{error}")
+  }
+}
+
+///|
+fn login_hint(
+  error : @trac.TracError,
+  account~ : String,
+  username~ : String,
+) -> String? {
+  match error {
+    Http(status=401) =>
+      Some(
+        "Check the username and password, and that the web server accepts Basic authentication at \{account}/login/rpc.",
+      )
+    // A URL that is no Trac project and a project without TracXMLRPC both
+    // answer the same 404, so the hint has to name both.
+    Http(status=404) =>
+      Some(
+        "Check that the URL is the Trac project and that the TracXMLRPC plugin is enabled there.",
+      )
+    Fault(code=403, ..) =>
+      Some("Ask a Trac administrator to grant XML_RPC to \{username}.")
+    _ => None
   }
 }

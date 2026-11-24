@@ -16,6 +16,9 @@ services:
       # Holds XML_RPC on top of the anonymous defaults, so it can read tickets and the wiki but not edit them.
       TRAC_VIEWER_USER: viewer
       TRAC_VIEWER_PASSWORD: viewer-password
+      # Holds only the anonymous defaults, which leave out XML_RPC, so it logs in but Trac refuses it RPC.
+      TRAC_OUTSIDER_USER: outsider
+      TRAC_OUTSIDER_PASSWORD: outsider-password
     volumes:
       - trac-env:/var/trac
 

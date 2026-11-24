@@ -7,6 +7,8 @@ vars:
   TRAC_ADMIN_PASSWORD: admin-password
   TRAC_VIEWER_USER: viewer
   TRAC_VIEWER_PASSWORD: viewer-password
+  TRAC_OUTSIDER_USER: outsider
+  TRAC_OUTSIDER_PASSWORD: outsider-password
 
 tasks:
   registry:
@@ -88,6 +90,8 @@ tasks:
       SHIROUSAGI_TEST_ADMIN_PASSWORD: "{{.TRAC_ADMIN_PASSWORD}}"
       SHIROUSAGI_TEST_VIEWER_USER: "{{.TRAC_VIEWER_USER}}"
       SHIROUSAGI_TEST_VIEWER_PASSWORD: "{{.TRAC_VIEWER_PASSWORD}}"
+      SHIROUSAGI_TEST_OUTSIDER_USER: "{{.TRAC_OUTSIDER_USER}}"
+      SHIROUSAGI_TEST_OUTSIDER_PASSWORD: "{{.TRAC_OUTSIDER_PASSWORD}}"
     cmds:
       # Trac on SQLite refuses a write that overlaps another with "database is locked", so the packages run one after another and their moon.pkg runs one test at a time.
       - moon test --no-parallelize {{.CLI_ARGS}}

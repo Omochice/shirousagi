@@ -15,6 +15,8 @@ pub fn build_server(@trac.Trac, Bool) -> @mcp.Server
 
 pub fn canonicalize_endpoint(String) -> String raise CliError
 
+pub async fn check_login(@trac.Trac) -> Unit raise @trac.TracError
+
 pub fn parse_arguments(argv? : ArrayView[String]) -> Invocation raise CliError
 
 pub fn registered_tools(@trac.Trac, @tools.Mode) -> Array[@mcp.Tool]
@@ -23,7 +25,7 @@ pub fn resolve_credential(String, &KeyringPort) -> Credential raise CliError
 
 pub fn run_list(&KeyringPort) -> Array[String] raise CliError
 
-pub async fn run_login(String, username~ : String, &KeyringPort, async () -> String) -> String raise CliError
+pub async fn run_login(String, username~ : String, &KeyringPort, async () -> String, async (@trac.Trac) -> Unit raise @trac.TracError) -> String raise CliError
 
 pub fn run_logout(String, &KeyringPort) -> String raise CliError
 
