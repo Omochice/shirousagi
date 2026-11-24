@@ -34,12 +34,10 @@ fn stored(username : String, password : String) -> String {
 }
 
 ///|
-fn accept(_trac : @trac.Trac) -> Unit {
-  ()
-}
+let accept : async (@trac.Trac) -> Unit raise @trac.TracError = _ => ()
 
 ///|
-fn reject(_trac : @trac.Trac) -> Unit raise @trac.TracError {
+let reject : async (@trac.Trac) -> Unit raise @trac.TracError = _ => {
   raise Http(status=401)
 }
 

@@ -18,20 +18,22 @@ fn strip_line_ending(input : String) -> String {
 }
 
 ///|
-/// Stores `username` and the password read by `read_secret` for `endpoint`,
-/// and returns the account they were stored under.
+/// Stores `username` and the password read by `read_secret` for `endpoint`
+/// once `check` succeeds with a client logged in as them, and returns the
+/// account they were stored under.
 /// The username is checked before the password is read, so that a user is
 /// not asked for a password that cannot be stored.
 ///
 /// # Raises
 /// `Message` for an invalid endpoint, a username that is empty or that Trac
-/// cannot log in with, a password that cannot be read or is empty, or a
-/// failing store.
+/// cannot log in with, a password that cannot be read or is empty, a failing
+/// `check`, or a failing store.
 pub async fn run_login(
   endpoint : String,
   username~ : String,
   store : &KeyringPort,
   read_secret : async () -> String,
+  check : async (@trac.Trac) -> Unit raise @trac.TracError,
 ) -> String raise CliError {
   let account = canonicalize_endpoint(endpoint)
   if username.trim() == "" {
@@ -48,8 +50,25 @@ pub async fn run_login(
   if password == "" {
     raise Message("no password was provided")
   }
+  let trac = @trac.new(endpoint=account, username~, password~) catch {
+    error => raise Message("\{error}")
+  }
+  check(trac) catch {
+    error => raise Message("could not log in to \{account}: \{error}")
+  }
   store.set(account~, secret=encode_secret(username~, password~))
   account
+}
+
+///|
+/// Succeeds when Trac accepts the login of `trac` for RPC.
+///
+/// # Raises
+/// `TracError` when Trac refuses the login or cannot be reached.
+pub async fn check_login(trac : @trac.Trac) -> Unit raise @trac.TracError {
+  // The API version reads nothing from the project, so a check through it
+  // refuses no user that holds `XML_RPC`.
+  ignore(@trac.api_version(trac))
 }
 
 ///|

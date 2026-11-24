@@ -7,9 +7,13 @@ async fn run() -> Unit {
   match @cli.parse_arguments() {
     Serve(endpoint~, read_only~) => @cli.run_serve(endpoint, read_only, store)
     Login(endpoint~, username~) => {
-      let account = @cli.run_login(endpoint, username~, store, async fn() {
-        @tty.read_secret("Trac password: ")
-      })
+      let account = @cli.run_login(
+        endpoint,
+        username~,
+        store,
+        async fn() { @tty.read_secret("Trac password: ") },
+        @cli.check_login,
+      )
       eprintln("Stored the password of \{username} for \{account}.")
     }
     Logout(endpoint~) => {
