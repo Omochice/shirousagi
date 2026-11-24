@@ -20,6 +20,12 @@
       url = "github:moonbit-community/moonbit-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # The fork carries the fixes this workspace needs (./ members, pkgtype executables, dev_build in sub-packages) until upstream merges them.
+    moon-nix = {
+      url = "github:Omochice/moon-nix/fix-moon-compat";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.moonbit-overlay.follows = "moonbit-overlay";
+    };
     mooncakes-index = {
       url = "git+https://mooncakes.io/git/index";
       flake = false;
@@ -35,6 +41,7 @@
       nur-packages,
       git-hooks,
       moonbit-overlay,
+      moon-nix,
       mooncakes-index,
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -304,6 +311,25 @@
           ))
         ];
         formatter = treefmt.config.build.wrapper;
+        packages = pkgs.lib.optionalAttrs (moonbitToolchain != [ ]) rec {
+          shirousagi =
+            (moon-nix.lib.mkMoonNix {
+              inherit pkgs;
+              toolchain = builtins.head moonbitToolchain;
+            }).buildProject
+              {
+                # Not `self`: moon-nix builds attribute names from paths under src, and a string from `self` carries store-path context that Nix rejects there.
+                src = ./.;
+                mainPackage = "omochice/shirousagi/cmd/shirousagi";
+                target = "native";
+                registry = mooncakes-index;
+                meta = {
+                  description = "Trac MCP server";
+                  license = pkgs.lib.licenses.zlib;
+                };
+              };
+          default = shirousagi;
+        };
         # keep-sorted end
       }
     );
