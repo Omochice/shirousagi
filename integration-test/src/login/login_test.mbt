@@ -60,7 +60,7 @@ async test "login refuses a wrong password with Trac's answer and stores nothing
       assert_true(
         error
         .to_string()
-        .has_suffix(": HTTP 401: the username or password was rejected"),
+        .contains(": HTTP 401: the username or password was rejected\n"),
         msg=error.to_string(),
       )
   } noraise {
@@ -76,7 +76,9 @@ async test "login refuses a URL that is not a Trac project and stores nothing" {
   try login(store, endpoint, @livetest.admin_password()) catch {
     error =>
       assert_true(
-        error.to_string().has_prefix("could not log in to \{endpoint}: "),
+        error
+        .to_string()
+        .has_prefix("could not log in to \{endpoint}: HTTP 404\n"),
         msg=error.to_string(),
       )
   } noraise {

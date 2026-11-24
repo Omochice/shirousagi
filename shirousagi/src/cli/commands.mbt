@@ -54,7 +54,13 @@ pub async fn run_login(
     error => raise Message("\{error}")
   }
   check(trac) catch {
-    error => raise Message("could not log in to \{account}: \{error}")
+    error => {
+      let failure = "could not log in to \{account}: \{error}"
+      match login_hint(error, account~, username~) {
+        Some(hint) => raise Message("\{failure}\n\{hint}")
+        None => raise Message(failure)
+      }
+    }
   }
   store.set(account~, secret=encode_secret(username~, password~))
   account
@@ -143,5 +149,28 @@ pub async fn run_serve(
   }
   build_server(trac, read_only).serve_stdio() catch {
     error => raise Message("\{error}")
+  }
+}
+
+///|
+fn login_hint(
+  error : @trac.TracError,
+  account~ : String,
+  username~ : String,
+) -> String? {
+  match error {
+    Http(status=401) =>
+      Some(
+        "Check the username and password, and that the web server accepts Basic authentication at \{account}/login/rpc.",
+      )
+    // A URL that is no Trac project and a project without TracXMLRPC both
+    // answer the same 404, so the hint has to name both.
+    Http(status=404) =>
+      Some(
+        "Check that the URL is the Trac project and that the TracXMLRPC plugin is enabled there.",
+      )
+    Fault(code=403, ..) =>
+      Some("Ask a Trac administrator to grant XML_RPC to \{username}.")
+    _ => None
   }
 }
