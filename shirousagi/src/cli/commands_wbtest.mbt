@@ -34,6 +34,93 @@ fn stored(username : String, password : String) -> String {
 }
 
 ///|
+fn accept(_trac : @trac.Trac) -> Unit {
+  ()
+}
+
+///|
+fn reject(_trac : @trac.Trac) -> Unit raise @trac.TracError {
+  raise Http(status=401)
+}
+
+///|
+async test "login checks the credential with Trac once, before storing it" {
+  let store = fake([])
+  let stored_when_checked = []
+  ignore(
+    run_login("https://t.example.com", username="alice", store, fn() { "pw" }, _ => {
+      stored_when_checked.push(store.entries.length())
+    }),
+  )
+  assert_eq(stored_when_checked, [0])
+  assert_eq(
+    store.entries.get("https://t.example.com").map(decode_secret),
+    Some(Some(("alice", "pw"))),
+  )
+}
+
+///|
+async test "login stores nothing and names the account when Trac rejects the credential" {
+  let store = fake([])
+  try
+    run_login(
+      "https://T.example.com/",
+      username="alice",
+      store,
+      fn() { "pw" },
+      reject,
+    )
+  catch {
+    e =>
+      inspect(
+        e,
+        content="could not log in to https://t.example.com: HTTP 401: the username or password was rejected",
+      )
+  } noraise {
+    _ => fail("a rejected credential was stored")
+  }
+  assert_true(store.entries.is_empty())
+}
+
+///|
+async test "a rejected login keeps the credential stored earlier" {
+  let earlier = stored("alice", "pw")
+  let store = fake([("https://t.example.com", earlier)])
+  try
+    run_login(
+      "https://t.example.com",
+      username="alice",
+      store,
+      fn() { "wrong" },
+      reject,
+    )
+  catch {
+    _ => ()
+  } noraise {
+    _ => fail("a rejected credential was stored")
+  }
+  assert_eq(store.entries.get("https://t.example.com"), Some(earlier))
+}
+
+///|
+async test "login does not ask Trac about a credential it refuses by itself" {
+  for case in [("alice", ""), ("  ", "pw"), ("al:ice", "pw")] {
+    let (username, input) = case
+    let checked = []
+    try
+      run_login("https://t.example.com", username~, fake([]), fn() { input }, _ => {
+        checked.push(())
+      })
+    catch {
+      _ => ()
+    } noraise {
+      _ => fail("the login of `\{username}` was stored")
+    }
+    assert_true(checked.is_empty())
+  }
+}
+
+///|
 async test "login stores the username and password under the canonical account" {
   let store = fake([])
   let account = run_login(
@@ -41,6 +128,7 @@ async test "login stores the username and password under the canonical account" 
     username="alice",
     store,
     fn() { " pass word \n" },
+    accept,
   )
   inspect(account, content="https://t.example.com/project")
   assert_eq(
@@ -54,7 +142,13 @@ async test "login drops a CRLF or a lone CR line ending but nothing else" {
   for input in ["pw\r\n", "pw\r", "pw\n"] {
     let store = fake([])
     ignore(
-      run_login("https://t.example.com", username="alice", store, fn() { input }),
+      run_login(
+        "https://t.example.com",
+        username="alice",
+        store,
+        fn() { input },
+        accept,
+      ),
     )
     assert_eq(
       store.entries.get("https://t.example.com").map(decode_secret),
@@ -67,9 +161,13 @@ async test "login drops a CRLF or a lone CR line ending but nothing else" {
 async test "login keeps a line ending that is not the last one" {
   let store = fake([])
   ignore(
-    run_login("https://t.example.com", username="alice", store, fn() {
-      "pw\n\n"
-    }),
+    run_login(
+      "https://t.example.com",
+      username="alice",
+      store,
+      fn() { "pw\n\n" },
+      accept,
+    ),
   )
   assert_eq(
     store.entries.get("https://t.example.com").map(decode_secret),
@@ -82,7 +180,13 @@ async test "login rejects an empty password" {
   for input in ["", "\n", "\r\n", "\r"] {
     let store = fake([])
     try
-      run_login("https://t.example.com", username="alice", store, fn() { input })
+      run_login(
+        "https://t.example.com",
+        username="alice",
+        store,
+        fn() { input },
+        accept,
+      )
     catch {
       e => inspect(e, content="no password was provided")
     } noraise {
@@ -98,10 +202,16 @@ async test "login rejects a blank username before reading the password" {
     let store = fake([])
     let read = []
     try
-      run_login("https://t.example.com", username~, store, fn() {
-        read.push(())
-        "pw"
-      })
+      run_login(
+        "https://t.example.com",
+        username~,
+        store,
+        fn() {
+          read.push(())
+          "pw"
+        },
+        accept,
+      )
     catch {
       e => inspect(e, content="no username was provided")
     } noraise {
@@ -117,10 +227,16 @@ async test "login rejects a username Basic authentication cannot carry" {
   let store = fake([])
   let read = []
   try
-    run_login("https://t.example.com", username="al:ice", store, fn() {
-      read.push(())
-      "pw"
-    })
+    run_login(
+      "https://t.example.com",
+      username="al:ice",
+      store,
+      fn() {
+        read.push(())
+        "pw"
+      },
+      accept,
+    )
   catch {
     e => inspect(e, content="the username must not contain `:`")
   } noraise {
@@ -134,9 +250,13 @@ async test "login rejects a username Basic authentication cannot carry" {
 async test "login reports a failed secret read and stores nothing" {
   let store = fake([])
   try
-    run_login("https://t.example.com", username="alice", store, () => {
-      raise Message("stdin is not a terminal")
-    })
+    run_login(
+      "https://t.example.com",
+      username="alice",
+      store,
+      () => raise Message("stdin is not a terminal"),
+      accept,
+    )
   catch {
     e => inspect(e, content="stdin is not a terminal")
   } noraise {
@@ -149,9 +269,13 @@ async test "login reports a failed secret read and stores nothing" {
 async test "login rejects credentials in the endpoint and stores nothing" {
   let store = fake([])
   try
-    run_login("https://user:pw@t.example.com", username="alice", store, fn() {
-      "pw"
-    })
+    run_login(
+      "https://user:pw@t.example.com",
+      username="alice",
+      store,
+      fn() { "pw" },
+      accept,
+    )
   catch {
     e =>
       inspect(
@@ -168,7 +292,13 @@ async test "login rejects credentials in the endpoint and stores nothing" {
 async test "login rejects a scheme the SDK cannot use and stores nothing" {
   let store = fake([])
   try
-    run_login("ftp://t.example.com", username="alice", store, fn() { "pw" })
+    run_login(
+      "ftp://t.example.com",
+      username="alice",
+      store,
+      fn() { "pw" },
+      accept,
+    )
   catch {
     e => inspect(e, content="invalid endpoint URL: ftp://t.example.com")
   } noraise {
