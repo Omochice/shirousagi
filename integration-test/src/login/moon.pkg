@@ -1,0 +1,9 @@
+import {
+  "moonbitlang/async",
+  "omochice/integration-test/livetest",
+  "omochice/shirousagi/cli",
+} for "test"
+
+supported_targets = "+native"
+
+max_concurrent_tests = 1
