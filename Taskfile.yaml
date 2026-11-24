@@ -49,6 +49,11 @@ tasks:
     cmds:
       - moon build --target native --release shirousagi/src/cmd/shirousagi
 
+  build:flake:
+    desc: Build the executable as the flake package and link it at _build/shirousagi
+    cmds:
+      - nix build .#shirousagi --out-link _build/shirousagi
+
   trac:up:
     desc: Start the throwaway Trac and wait until its RPC handler answers
     cmds:
