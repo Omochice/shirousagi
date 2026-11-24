@@ -29,6 +29,9 @@ jobs:
 
       - run: nix flake check
 
+      - name: Verify the build-info source is committed in its None form
+        run: nix develop --command task build-info:verify
+
   status-check:
     timeout-minutes: 5
     runs-on: ubuntu-latest

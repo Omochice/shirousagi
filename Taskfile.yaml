@@ -54,6 +54,16 @@ tasks:
     cmds:
       - nix build .#shirousagi --out-link _build/shirousagi
 
+  build-info:stamp:
+    desc: Overwrite the build-info source with this checkout's commit
+    cmds:
+      - bash .github/scripts/build-info.sh stamp
+
+  build-info:verify:
+    desc: Fail unless the build-info source is committed in its None form
+    cmds:
+      - bash .github/scripts/build-info.sh verify
+
   trac:up:
     desc: Start the throwaway Trac and wait until its RPC handler answers
     cmds:
