@@ -58,26 +58,78 @@ async test "login checks the credential with Trac once, before storing it" {
 }
 
 ///|
-async test "login stores nothing and names the account when Trac rejects the credential" {
+/// What login of `alice` at `https://T.example.com/` fails with when Trac answers `error`, after checking that nothing was stored.
+async fn login_failure(error : @trac.TracError) -> String {
   let store = fake([])
-  try
+  let message = try
     run_login(
       "https://T.example.com/",
       username="alice",
       store,
       fn() { "pw" },
-      reject,
+      _ => raise error,
     )
   catch {
-    e =>
-      inspect(
-        e,
-        content="could not log in to https://t.example.com: HTTP 401: the username or password was rejected",
-      )
+    e => e.to_string()
   } noraise {
-    _ => fail("a rejected credential was stored")
+    _ => fail("a credential Trac refused was stored")
   }
   assert_true(store.entries.is_empty())
+  message
+}
+
+///|
+async test "a refused login names the account, with no hint for a failure that has none" {
+  assert_eq(
+    login_failure(Transport(message="connection refused")),
+    "could not log in to https://t.example.com: connection refused",
+  )
+  assert_eq(
+    login_failure(Decode(message="not a JSON-RPC reply")),
+    "could not log in to https://t.example.com: not a JSON-RPC reply",
+  )
+  assert_eq(
+    login_failure(Http(status=500)),
+    "could not log in to https://t.example.com: HTTP 500",
+  )
+}
+
+///|
+async test "a refused login with HTTP 404 points at the URL and the TracXMLRPC plugin" {
+  inspect(
+    login_failure(Http(status=404)),
+    content=(
+      #|could not log in to https://t.example.com: HTTP 404
+      #|Check that the URL is the Trac project and that the TracXMLRPC plugin is enabled there.
+    ),
+  )
+}
+
+///|
+async test "a login refused for lacking XML_RPC asks for the permission" {
+  inspect(
+    login_failure(
+      Fault(
+        code=403,
+        message="XML_RPC privileges are required to perform this operation. You don't have the required permissions.",
+      ),
+    ),
+    content=(
+      #|could not log in to https://t.example.com: Trac fault 403: XML_RPC privileges are required to perform this operation. You don't have the required permissions.
+      #|Ask a Trac administrator to grant XML_RPC to alice.
+    ),
+  )
+}
+
+///|
+async test "a login refused with HTTP 401 points at the password and Basic authentication" {
+  inspect(
+    login_failure(Http(status=401)),
+    content=(
+      #|could not log in to https://t.example.com: HTTP 401: the username or password was rejected
+      #|Check the username and password, and that the web server accepts Basic authentication at https://t.example.com/login/rpc.
+    ),
+  )
 }
 
 ///|
