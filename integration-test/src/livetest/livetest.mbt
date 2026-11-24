@@ -47,6 +47,18 @@ pub fn viewer() -> @trac.Trac raise {
 }
 
 ///|
+/// The username of a test Trac user who logs in but lacks `XML_RPC`, from `SHIROUSAGI_TEST_OUTSIDER_USER`.
+pub fn outsider_username() -> String raise {
+  variable("SHIROUSAGI_TEST_OUTSIDER_USER")
+}
+
+///|
+/// The password of the user `outsider_username` names, from `SHIROUSAGI_TEST_OUTSIDER_PASSWORD`.
+pub fn outsider_password() -> String raise {
+  variable("SHIROUSAGI_TEST_OUTSIDER_PASSWORD")
+}
+
+///|
 /// A name no earlier run used, so that tests sharing one Trac never meet each other's leftovers.
 pub fn unique(prefix : String) -> String {
   "\{prefix}\{@async.now()}"

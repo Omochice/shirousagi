@@ -15,4 +15,7 @@ if [ ! -f "$env/VERSION" ]; then
     htpasswd -b /var/trac/htpasswd "$TRAC_VIEWER_USER" "$TRAC_VIEWER_PASSWORD"
 fi
 
+# Outside the block above, so that an environment created before this user existed gains it on the next start.
+htpasswd -b /var/trac/htpasswd "$TRAC_OUTSIDER_USER" "$TRAC_OUTSIDER_PASSWORD"
+
 exec tracd --single-env --port 8000 --basic-auth="*,/var/trac/htpasswd,Trac" "$env"
