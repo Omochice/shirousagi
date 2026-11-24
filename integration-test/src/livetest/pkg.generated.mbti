@@ -8,6 +8,10 @@ import {
 // Values
 pub fn admin() -> @trac.Trac raise
 
+pub fn admin_password() -> String raise
+
+pub fn admin_username() -> String raise
+
 pub async fn cleanup(async () -> Unit) -> Unit noraise + nocancel
 
 pub fn endpoint() -> String raise
