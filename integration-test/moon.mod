@@ -1,14 +1,19 @@
 name = "omochice/integration-test"
 
+// x-release-please-start-version
+
 version = "0.1.0"
+// x-release-please-end
 
 license = "Zlib"
 
 import {
   "Omochice/mcp@0.6.0",
   "moonbitlang/async@0.22.9",
+  // x-release-please-start-version
   "omochice/shirousagi@0.1.0",
   "omochice/trac@0.1.0",
+  // x-release-please-end
 }
 
 preferred_target = "native"
