@@ -242,6 +242,7 @@
             ghalint
             zizmor
           ];
+          coverage = [ pkgs.octocov ];
           moonbit = moonbitToolchain;
           # keep-sorted end
           default = [
@@ -249,6 +250,7 @@
             treefmt.config.build.wrapper
           ]
           ++ actions
+          ++ coverage
           ++ moonbit;
         };
       in

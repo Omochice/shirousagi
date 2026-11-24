@@ -1,0 +1,21 @@
+coverage:
+  paths:
+    - _build/coverage/cobertura.xml
+  exclude:
+    - integration-test/**
+    - shirousagi/src/cmd/**
+testExecutionTime:
+  steps:
+    - Run the integration tests with coverage
+comment:
+  if: is_pull_request
+  updatePrevious: true
+summary:
+  if: true
+report:
+  if: is_default_branch
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}
+diff:
+  datastores:
+    - artifact://${GITHUB_REPOSITORY}
