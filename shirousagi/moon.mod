@@ -12,7 +12,9 @@ import {
   "Omochice/mcp@0.6.0",
   "Omochice/schema@0.6.0",
   "moonbitlang/async@0.22.9",
+  // x-release-please-start-version
   "omochice/trac@0.1.0",
+  // x-release-please-end
 }
 
 preferred_target = "native"
