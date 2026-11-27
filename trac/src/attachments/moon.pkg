@@ -2,4 +2,9 @@ import {
   "omochice/trac",
 }
 
+import {
+  "moonbitlang/async",
+  "omochice/trac/internal/stub",
+} for "test"
+
 supported_targets = "+native"
